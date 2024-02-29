@@ -26,4 +26,4 @@ This is a simple application that allows users to track their groupie activities
 ## Author
 
 - [Lucas DIOT](https://github.com/LQuatre)
-- [Guillaume MARDINLI]
+- Guillaume MARDINLI
