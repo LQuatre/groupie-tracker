@@ -63,6 +63,30 @@ func (a *API) GetAllBands() ([]Band, error) {
     return bands, nil
 }
 
+func (a *API) GetBand(bandID int) (*Band, error) {
+	url := fmt.Sprintf("%s/artists/%d", a.BaseURL, bandID)
+
+	// Envoyer une requête GET à l'API
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de l'envoi de la requête: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Vérifier le statut de la réponse
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("l'API a renvoyé un statut non-OK: %d", resp.StatusCode)
+	}
+
+	// Décode la réponse JSON en une structure Band
+	var band Band
+	if err := json.NewDecoder(resp.Body).Decode(&band); err != nil {
+		return nil, fmt.Errorf("erreur lors du décodage de la réponse JSON: %v", err)
+	}
+
+	return &band, nil
+}
+
 func GetRelationshipData(relationID int) (*Relationship, error) {
     url := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/relation/%d", relationID)
 
