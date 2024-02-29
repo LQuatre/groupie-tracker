@@ -36,12 +36,60 @@ nav ul {
 }
 
 nav ul li {
-  /* margin-right: 10px; */
+  margin-right: 10px;
 }
 
 nav ul li a {
   color: #fff;
   text-decoration: none;
+}
+.search-bar {
+  display: flex;
+  align-items: center;
+  width: 300px;
+  margin-bottom: 20px;
+}
+
+.search-bar input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.search-bar button {
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.filter-form {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 600px; /* Définir une largeur maximale pour le formulaire */
+}
+
+.filter-form label,
+.filter-form input[type="number"],
+.filter-form input[type="text"],
+.filter-form select {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.filter-form button {
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 /* Main styles */

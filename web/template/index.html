@@ -15,14 +15,30 @@
       <h1>Groupie Tracker</h1>
       <nav>
         <ul>
-          <li><a href="#">Home</a></li>
-          <li><a href="#">Artists</a></li>
-          <li><a href="#">Concerts</a></li>
-          <li><a href="#">About</a></li>
+          <li>      
+            <form action="/search" method="GET" class="search-bar">
+              <input type="text" name="query" placeholder="Search..." />
+              <button type="submit">Search</button>
+            </form>
+          </li>
+          <li>
+            <form action="/filter" method="GET" class="filter-form">
+              <label for="members">Members</label>
+              <input type="text" id="members" name="members" />
+              <label for="numberofmember">Number of Members:</label>
+              <input type="number" id="numberofmember" name="numberofmember" placeholder="0" />
+              <label for="creation-date">Creation Date:</label>
+              <input type="text" id="creation-date" name="creation-date" />
+              <label for="first-album">First Album:</label>
+              <input type="text" id="first-album" name="first-album" />
+              <label for="concert-date">Concert Dates:</label>
+              <input type="text" id="concert-date" name="concert-date" />
+              <button type="submit">Filter</button>
+            </form>
+          </li>
         </ul>
       </nav>
     </header>
-
     <main>
       <section id="artists">
         <h2>Featured Artists</h2>

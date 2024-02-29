@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 	"strings"
 )
 
 // API est la structure principale de notre package
 type API struct {
-	BaseURL string
+	BaseURL       string
+	Bands         []Band
+	Relationships []Relationship
 }
 
 // NewAPI crée une nouvelle instance de l'API
@@ -37,43 +38,47 @@ type Band struct {
 }
 
 type Filter struct {
-	Name string `json:"name"`
-	NumberOfMembers int `json:"numberOfMembers"`
-	Location string `json:"location"`
-	StartDate string `json:"startDate"`
-	EndDate string `json:"endDate"`
-	Locations []string `json:"locations"`
-	ConcertDates []string `json:"concertDates"`
-	Relations []string `json:"relations"`
+	Members         string   `json:"members,omitempty"`
+	NumberOfMembers int      `json:"numberOfMembers"`
+	Location        string   `json:"location"`
+	CreationDate    int   `json:"creationDate"`
+	FirstAlbum      string   `json:"firstAlbum"`
+	ConcertDate    	string `json:"concertDate"`
 }
 
 type Relationship struct {
-    ID            int                    `json:"id"`
-    DatesLocations map[string][]string `json:"datesLocations"`
+	ID              int                    `json:"id"`
+	DatesLocations  map[string][]string    `json:"datesLocations"`
 }
 
 // GetAllBands récupère la liste complète de tous les groupes de musique
 func (a *API) GetAllBands() ([]Band, error) {
-    // Effectuer la requête à l'API pour récupérer tous les groupes de musique
-    resp, err := http.Get(fmt.Sprintf("%s/artists", a.BaseURL))
-    if err != nil {
-        return nil, fmt.Errorf("failed to send request: %w", err)
-    }
-    defer resp.Body.Close()
+	if len(a.Bands) > 0 {
+		return a.Bands, nil
+	}
 
-    // Vérifier le statut de la réponse
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
-    }
+	// Effectuer la requête à l'API pour récupérer tous les groupes de musique
+	resp, err := http.Get(fmt.Sprintf("%s/artists", a.BaseURL))
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer resp.Body.Close()
 
-    // Décode la réponse JSON en une liste de groupes de musique
-    var bands []Band
-    err = json.NewDecoder(resp.Body).Decode(&bands)
-    if err != nil {
-        return nil, fmt.Errorf("failed to decode response: %w", err)
-    }
+	// Vérifier le statut de la réponse
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("API returned non-OK status: %d", resp.StatusCode)
+	}
 
-    return bands, nil
+	// Décode la réponse JSON en une liste de groupes de musique
+	var bands []Band
+	err = json.NewDecoder(resp.Body).Decode(&bands)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+
+	a.Bands = bands
+
+	return bands, nil
 }
 
 func (a *API) GetBandFromSearch(search string) ([]Band, error) {
@@ -90,15 +95,20 @@ func (a *API) GetBandFromSearch(search string) ([]Band, error) {
 	return bandsFound, nil
 }
 
-func (a *API) GetBandFromFilter(filter Filter) ([]Band, error) {
+func (a *API) FilterBands(filter Filter) ([]Band, error) {
 	var bands, err = a.GetAllBands()
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération de la liste des groupes: %v", err)
 	}
 	var bandsFound []Band
 	for _, band := range bands {
-		if filter.Name != "" && band.Name != filter.Name {
-			continue
+		if filter.Members != "" {
+			members := strings.Split(filter.Members, ",")
+			for _, member := range members {
+				if !strings.Contains(strings.ToLower(strings.Join(band.Members, " ")), strings.ToLower(member)) {
+					continue
+				}
+			}
 		}
 		if filter.NumberOfMembers != 0 && len(band.Members) != filter.NumberOfMembers {
 			continue
@@ -107,57 +117,16 @@ func (a *API) GetBandFromFilter(filter Filter) ([]Band, error) {
 		if filter.Location != "" && band.Locations != filter.Location {
 			continue
 		}
-		if filter.StartDate != "" {
-			startDate, err := strconv.Atoi(filter.StartDate)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert start date to integer: %w", err)
-			}
-			if band.CreationDate < startDate {
+		if filter.CreationDate != 0 {
+			if band.CreationDate != filter.CreationDate {
 				continue
 			}
 		}
-		if filter.EndDate != "" {
-			endDate, err := strconv.Atoi(filter.EndDate)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert end date to integer: %w", err)
-			}
-			if band.CreationDate > endDate {
-				continue
-			}
+		if filter.FirstAlbum != "" && band.FirstAlbum != filter.FirstAlbum {
+			continue
 		}
-		if len(filter.Locations) != 0 {
-			found := false
-			for _, location := range filter.Locations {
-				if location == band.Locations {
-					found = true
-					break
-				}
-			}
-			if !found {
-				continue
-			}
-		}
-		if len(filter.ConcertDates) != 0 {
-			found := false
-			for _, concertDate := range filter.ConcertDates {
-				if concertDate == band.ConcertDates {
-					found = true
-					break
-				}
-			}
-			if !found {
-				continue
-			}
-		}
-		if len(filter.Relations) != 0 {
-			found := false
-			for _, relation := range filter.Relations {
-				if relation == band.Relations {
-					found = true
-					break
-				}
-			}
-			if !found {
+		if filter.ConcertDate != "" {
+			if !strings.Contains(filter.ConcertDate, band.ConcertDates) {
 				continue
 			}
 		}
@@ -167,6 +136,18 @@ func (a *API) GetBandFromFilter(filter Filter) ([]Band, error) {
 }
 
 func (a *API) GetBand(bandID int) (*Band, error) {
+	var band *Band
+	for _, b := range a.Bands {
+		if b.ID == bandID {
+			band = &b
+			break
+		}
+	}
+
+	if band != nil {
+		return band, nil
+	}
+
 	url := fmt.Sprintf("%s/artists/%d", a.BaseURL, bandID)
 
 	// Envoyer une requête GET à l'API
@@ -182,34 +163,35 @@ func (a *API) GetBand(bandID int) (*Band, error) {
 	}
 
 	// Décode la réponse JSON en une structure Band
-	var band Band
 	if err := json.NewDecoder(resp.Body).Decode(&band); err != nil {
 		return nil, fmt.Errorf("erreur lors du décodage de la réponse JSON: %v", err)
 	}
 
-	return &band, nil
+	a.Bands = append(a.Bands, *band)
+
+	return band, nil
 }
 
 func GetRelationshipData(relationID int) (*Relationship, error) {
-    url := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/relation/%d", relationID)
+	url := fmt.Sprintf("https://groupietrackers.herokuapp.com/api/relation/%d", relationID)
 
-    // Envoyer une requête GET à l'API
-    resp, err := http.Get(url)
-    if err != nil {
-        return nil, fmt.Errorf("erreur lors de l'envoi de la requête: %v", err)
-    }
-    defer resp.Body.Close()
+	// Envoyer une requête GET à l'API
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de l'envoi de la requête: %v", err)
+	}
+	defer resp.Body.Close()
 
-    // Vérifier le statut de la réponse
-    if resp.StatusCode != http.StatusOK {
-        return nil, fmt.Errorf("l'API a renvoyé un statut non-OK: %d", resp.StatusCode)
-    }
+	// Vérifier le statut de la réponse
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("l'API a renvoyé un statut non-OK: %d", resp.StatusCode)
+	}
 
-    // Décode la réponse JSON en une structure Relationship
-    var relationship Relationship
-    if err := json.NewDecoder(resp.Body).Decode(&relationship); err != nil {
-        return nil, fmt.Errorf("erreur lors du décodage de la réponse JSON: %v", err)
-    }
+	// Décode la réponse JSON en une structure Relationship
+	var relationship Relationship
+	if err := json.NewDecoder(resp.Body).Decode(&relationship); err != nil {
+		return nil, fmt.Errorf("erreur lors du décodage de la réponse JSON: %v", err)
+	}
 
-    return &relationship, nil
+	return &relationship, nil
 }

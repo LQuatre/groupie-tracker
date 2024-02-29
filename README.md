@@ -25,10 +25,5 @@ This is a simple application that allows users to track their groupie activities
 
 ## Author
 
-<<<<<<< HEAD
 - [Lucas Diot](https://ytrack.learn.ynov.com/git/dilucas) Alias [LQuatre](https://github.com/LQuatre)
 - [Guillaume]
-=======
-- [Lucas DIOT](https://github.com/LQuatre)
-- Guillaume MARDINLI
->>>>>>> 9e9d1c6fa7eb7238de84e93f3dd9ff0768721ba3
