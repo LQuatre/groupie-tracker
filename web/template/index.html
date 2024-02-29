@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/web/assets/style.css"
+    />
+    <title>Groupie Tracker</title>
+  </head>
+  <body>
+    <header>
+      <h1>Groupie Tracker</h1>
+      <nav>
+        <ul>
+          <li><a href="#">Home</a></li>
+          <li><a href="#">Artists</a></li>
+          <li><a href="#">Concerts</a></li>
+          <li><a href="#">About</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <main>
+      <section id="artists">
+        <h2>Featured Artists</h2>
+        {{range .}}
+        <div class="artist-card">
+          <img src="{{.Image}}" alt="{{.Name}}" />
+          <h3>{{.Name}}</h3>
+          <p>Members: {{range .Members}} {{.}}, {{end}}</p>
+          <p>Creation Date: {{.CreationDate}}</p>
+          <p>First Album: {{.FirstAlbum}}</p>
+          <p>Locations: <a href="{{.Locations}}">{{.Locations}}</a></p>
+          <p>
+            Concert Dates: <a href="{{.ConcertDates}}">{{.ConcertDates}}</a>
+          </p>
+          <p>Relations: <a href="{{.Relations}}">{{.Relations}}</a></p>
+          <form action="/artists/{{.ID}}" method="post">
+            <input type="hidden" name="_method" value="DELETE" />
+            <button type="submit">Delete</button>
+        </div>
+        {{end}}
+      </section>
+    </main>
+
+    <footer>
+      <p>&copy; 2022 Groupie Tracker. All rights reserved.</p>
+    </footer>
+  </body>
+</html>
