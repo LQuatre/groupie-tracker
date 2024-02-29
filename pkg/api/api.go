@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 // API est la structure principale de notre package
@@ -34,6 +35,17 @@ type Band struct {
 	Relations    string   `json:"relations"`
 }
 
+type Filter struct {
+	Name string `json:"name"`
+	NumberOfMembers int `json:"numberOfMembers"`
+	Location string `json:"location"`
+	StartDate string `json:"startDate"`
+	EndDate string `json:"endDate"`
+	Locations []string `json:"locations"`
+	ConcertDates []string `json:"concertDates"`
+	Relations []string `json:"relations"`
+}
+
 type Relationship struct {
     ID            int                    `json:"id"`
     DatesLocations map[string][]string `json:"datesLocations"`
@@ -61,6 +73,96 @@ func (a *API) GetAllBands() ([]Band, error) {
     }
 
     return bands, nil
+}
+
+func (a *API) GetBandFromSearch(search string) ([]Band, error) {
+	var bands, err = a.GetAllBands()
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la récupération de la liste des groupes: %v", err)
+	}
+	var bandsFound []Band
+	for _, band := range bands {
+		if band.Name == search {
+			bandsFound = append(bandsFound, band)
+		}
+	}
+	return bandsFound, nil
+}
+
+func (a *API) GetBandFromFilter(filter Filter) ([]Band, error) {
+	var bands, err = a.GetAllBands()
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de la récupération de la liste des groupes: %v", err)
+	}
+	var bandsFound []Band
+	for _, band := range bands {
+		if filter.Name != "" && band.Name != filter.Name {
+			continue
+		}
+		if filter.NumberOfMembers != 0 && len(band.Members) != filter.NumberOfMembers {
+			continue
+		}
+
+		if filter.Location != "" && band.Locations != filter.Location {
+			continue
+		}
+		if filter.StartDate != "" {
+			startDate, err := strconv.Atoi(filter.StartDate)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert start date to integer: %w", err)
+			}
+			if band.CreationDate < startDate {
+				continue
+			}
+		}
+		if filter.EndDate != "" {
+			endDate, err := strconv.Atoi(filter.EndDate)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert end date to integer: %w", err)
+			}
+			if band.CreationDate > endDate {
+				continue
+			}
+		}
+		if len(filter.Locations) != 0 {
+			found := false
+			for _, location := range filter.Locations {
+				if location == band.Locations {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		if len(filter.ConcertDates) != 0 {
+			found := false
+			for _, concertDate := range filter.ConcertDates {
+				if concertDate == band.ConcertDates {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		if len(filter.Relations) != 0 {
+			found := false
+			for _, relation := range filter.Relations {
+				if relation == band.Relations {
+					found = true
+					break
+				}
+			}
+			if !found {
+				continue
+			}
+		}
+		bandsFound = append(bandsFound, band)
+	}
+	return bandsFound, nil
 }
 
 func (a *API) GetBand(bandID int) (*Band, error) {
