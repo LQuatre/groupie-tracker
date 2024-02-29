@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // API est la structure principale de notre package
@@ -82,7 +83,7 @@ func (a *API) GetBandFromSearch(search string) ([]Band, error) {
 	}
 	var bandsFound []Band
 	for _, band := range bands {
-		if band.Name == search {
+		if search != "" && strings.Contains(strings.ToLower(band.Name), strings.ToLower(search)) {
 			bandsFound = append(bandsFound, band)
 		}
 	}
