@@ -21,7 +21,7 @@ h1 {
   margin-top: 20px;
 }
 
-div {
+.artist-card {
   max-width: 600px;
   margin: 0 auto;
   background-color: #fff;
@@ -44,4 +44,11 @@ p {
   margin-bottom: 5px;
 }
 
-/* Add your custom styles here */
+/*
+ * Always set the map height explicitly to define the size of the div element
+ * that contains the map.
+ */
+ #map {
+  height: 590px;
+  width: 590px;
+}

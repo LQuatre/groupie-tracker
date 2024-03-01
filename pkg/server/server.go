@@ -17,4 +17,3 @@ func StartServer() {
 
 	routes.Run()
 }
-

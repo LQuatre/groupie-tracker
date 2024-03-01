@@ -21,30 +21,36 @@ func (a *API) ShowAPI() {
 	fmt.Printf("API BaseURL: %s\n", a.BaseURL)
 }
 
+type Location struct {
+	Lat float64 `json:"lat"`
+	Lng float64 `json:"lng"`
+}
+
 type Band struct {
-	ID           int      `json:"id"`
-	Image        string   `json:"image"`
-	Name         string   `json:"name"`
-	Members      []string `json:"members,omitempty"`
-	CreationDate int      `json:"creationDate"`
-	FirstAlbum   string   `json:"firstAlbum"`
-	Locations    string   `json:"locations"`
-	ConcertDates string   `json:"concertDates"`
-	Relations    string   `json:"relations"`
+	ID                   int        `json:"id"`
+	Image                string     `json:"image"`
+	Name                 string     `json:"name"`
+	Members              []string   `json:"members,omitempty"`
+	CreationDate         int        `json:"creationDate"`
+	FirstAlbum           string     `json:"firstAlbum"`
+	Locations            string     `json:"locations"`
+	ConcertDates         string     `json:"concertDates"`
+	Relations            string     `json:"relations"`
+	LocationsCoordinates []Location `json:"locationsCoordinates"`
 }
 
 type Filter struct {
-	Members         string   `json:"members,omitempty"`
-	NumberOfMembers int      `json:"numberOfMembers"`
-	Location        string   `json:"location"`
-	CreationDate    int   `json:"creationDate"`
-	FirstAlbum      string   `json:"firstAlbum"`
-	ConcertDate    	string `json:"concertDate"`
+	Members         string `json:"members,omitempty"`
+	NumberOfMembers int    `json:"numberOfMembers"`
+	Location        string `json:"location"`
+	CreationDate    int    `json:"creationDate"`
+	FirstAlbum      string `json:"firstAlbum"`
+	ConcertDate     string `json:"concertDate"`
 }
 
 type Relationship struct {
-	ID              int                    `json:"id"`
-	DatesLocations  map[string][]string    `json:"datesLocations"`
+	ID             int                 `json:"id"`
+	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
 func (a *API) GetAllBands() ([]Band, error) {
@@ -161,11 +167,11 @@ func (a *API) GetBand(bandID int) (*Band, error) {
 	return band, nil
 }
 
-func (a *API) GetAllRelationships() ([]Relationship, error) {
+func (a *API) GetAllRelations() ([]Relationship, error) {
 	if len(a.Relationships) > 1 {
 		return a.Relationships, nil
 	}
-	
+
 	url := fmt.Sprintf("%s/relation", a.BaseURL)
 
 	resp, err := http.Get(url)
@@ -186,4 +192,38 @@ func (a *API) GetAllRelationships() ([]Relationship, error) {
 	a.Relationships = relationships
 
 	return relationships, nil
-}	
+}
+
+func (a *API) GetRelation(relationshipID int) (*Relationship, error) {
+	var relationship *Relationship
+	for _, r := range a.Relationships {
+		if r.ID == relationshipID {
+			relationship = &r
+			break
+		}
+	}
+
+	if relationship != nil {
+		return relationship, nil
+	}
+
+	url := fmt.Sprintf("%s/relation/%d", a.BaseURL, relationshipID)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, fmt.Errorf("erreur lors de l'envoi de la requête: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("l'API a renvoyé un statut non-OK: %d", resp.StatusCode)
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&relationship); err != nil {
+		return nil, fmt.Errorf("erreur lors du décodage de la réponse JSON: %v", err)
+	}
+
+	a.Relationships = append(a.Relationships, *relationship)
+
+	return relationship, nil
+}

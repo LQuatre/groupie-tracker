@@ -9,70 +9,22 @@
       type="text/css"
       href="/static/web/assets/artist.css"
     />
-    <link
-      href="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.css"
-      rel="stylesheet"
-    />
-    <style>
-      #map {
-        width: 100%;
-        height: 400px;
-      }
-    </style>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o&callback=console.debug&libraries=maps,marker&v=beta"></script>
   </head>
   <body>
     <h1>Artist Profile</h1>
-    <div>
+    <div class="artist-card">
       <h2>{{ .Name }}</h2>
       <img src="{{ .Image }}" alt="{{ .Name }} Image" />
       <p>Members: {{ range .Members }}{{ . }}, {{ end }}</p>
       <p>Creation Date: {{ .CreationDate }}</p>
       <p>First Album: {{ .FirstAlbum }}</p>
-      <div id="map"></div>
-      <!-- Emplacement pour afficher la carte -->
+      <div id="map" data-locations="{{ .LocationsCoordinates }}"></div>
     </div>
-
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
-    <script>
-      // JavaScript pour initialiser la carte
-      mapboxgl.accessToken = "YOUR_MAPBOX_ACCESS_TOKEN"; // Remplacez par votre jeton d'accès Mapbox
-      const map = new mapboxgl.Map({
-        container: "map",
-        style: "mapbox://styles/mapbox/streets-v11", // Style de la carte (vous pouvez choisir un autre style si vous le souhaitez)
-        center: [0, 0], // Coordonnées du centre de la carte par défaut
-        zoom: 1, // Niveau de zoom par défaut
-      });
-
-      // Fonction pour ajouter un marqueur à la carte pour chaque emplacement
-      function addMarkers(locations) {
-        locations.forEach((location) => {
-          // Utilisez la latitude et la longitude de chaque emplacement pour ajouter un marqueur à la carte
-          new mapboxgl.Marker()
-            .setLngLat([location.longitude, location.latitude])
-            .addTo(map);
-        });
-      }
-
-      // Récupérez les données de localisation de votre API Go
-      fetch("/api/locations") // Remplacez cet URL par l'URL de votre endpoint pour récupérer les données de localisation
-        .then((response) => response.json())
-        .then((data) => {
-          const locations = processData(data); // Traitez les données pour obtenir les coordonnées de latitude et de longitude
-          addMarkers(locations); // Ajoutez des marqueurs à la carte
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
-
-      // Fonction pour traiter les données et récupérer les coordonnées de latitude et de longitude
-      function processData(data) {
-        // Traitez vos données ici pour obtenir les coordonnées de latitude et de longitude
-        // Retournez un tableau d'objets avec les coordonnées de chaque emplacement
-        return data.map((location) => ({
-          latitude: location.latitude,
-          longitude: location.longitude,
-        }));
-      }
-    </script>
+    
+    <script src="/static/web/assets/artist.js"></script>
+    <gmp-map center="43.60826110839844,1.3836721181869507" zoom="14" map-id="DEMO_MAP_ID">
+      <gmp-advanced-marker title="My location"></gmp-advanced-marker>
+    </gmp-map>
   </body>
 </html>

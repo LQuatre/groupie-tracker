@@ -182,7 +182,7 @@ func SetFilterRoutes(myapi *api.API) {
 				if err != nil {
 					handleError(w, err)
 					return
-					}
+				}
 			}
 
 			filteredBands, err := myapi.FilterBands(api.Filter{
@@ -236,6 +236,20 @@ func SetArtistsRoutes(myapi *api.API) {
 				return
 			}
 
+			stringListLocations, err := myapi.GetRelation(idInt)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			band.LocationsCoordinates = []api.Location{}
+
+			for k, _ := range stringListLocations.DatesLocations {
+				lat, lng := GeocodeAddress(k)
+				thisLocation := api.Location{Lat: lat, Lng: lng}
+				band.LocationsCoordinates = append(band.LocationsCoordinates, thisLocation)
+			}
+
 			renderTemplate(w, "web/template/artist.html", band)
 		}
 	})
@@ -260,74 +274,55 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 }
 
-func handleAPILocationsRequest(w http.ResponseWriter, apiUrl string) {
-    w.Header().Set("Content-Type", "application/json")
-    resp, err := http.Get(apiUrl)
-    if err != nil {
-        handleError(w, err)
-        return
-    }
-    defer resp.Body.Close()
+func GeocodeAddress(placeName string) (float64, float64) {
+	apiKey := "AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o"
 
-    var locations []Location
-    if err := json.NewDecoder(resp.Body).Decode(&locations); err != nil {
-        handleError(w, err)
-        return
-    }
+	// Construire l'URL de l'API de géocodage de Google
+	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s", placeName, apiKey)
 
-    // Transform the data to extract latitude and longitude
-    var markers []Marker
-    for _, location := range locations {
-        for _, dates := range location.DatesLocations {
-            for _, date := range dates {
-                lat, lng := extractCoordinates(location.ID)
-                markers = append(markers, Marker{
-                    Latitude:  lat,
-                    Longitude: lng,
-                    Date:      date,
-                })
-            }
-        }
-    }
+	// Effectuer la requête HTTP GET
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Erreur lors de la requête HTTP:", err)
+		return 0.0, 0.0
+	}
+	defer resp.Body.Close()
 
-    // Send the transformed data back as JSON
-    if err := json.NewEncoder(w).Encode(markers); err != nil {
-        handleError(w, err)
-        return
-    }
-}
-
-// Define structs to match the JSON data
-type Location struct {
-    ID             int                    `json:"id"`
-    DatesLocations map[string][]string   `json:"datesLocations"`
-}
-
-type Marker struct {
-    Latitude  float64 `json:"latitude"`
-    Longitude float64 `json:"longitude"`
-    Date      string  `json:"date"`
-}
-
-// Function to extract coordinates based on location ID
-func extractCoordinates(id int) (float64, float64) {
-    // Define coordinates mapping based on location ID
-    // You need to define this mapping based on your data
-	// Declare latitude and longitude variables
-	latitude := 0.0
-	longitude := 0.0
-
-	coordinates := map[int][2]float64{
-		1:  {latitude, longitude}, // Example: {40.7128, -74.0060}
-		2:  {latitude, longitude},
-		// Add mappings for other location IDs
+	// Vérifier le code de statut HTTP
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("La requête HTTP a retourné un code d'état non-OK:", resp.StatusCode)
+		return 0.0, 0.0
 	}
 
-	// Retrieve coordinates based on location ID
-	if coord, ok := coordinates[id]; ok {
-		return coord[0], coord[1]
+	// Décodez la réponse JSON
+	var response map[string]interface{}
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		fmt.Println("Erreur lors du décodage de la réponse JSON:", err)
+		return 0.0, 0.0
 	}
 
-    // Default to (0, 0) if no coordinates are found
-    return 0, 0
+	// Vérifiez le statut de la réponse
+	if status, ok := response["status"].(string); !ok || status != "OK" {
+		fmt.Println("La réponse de l'API n'est pas OK:", status)
+		return 0.0, 0.0
+	}
+
+	lat := 0.0
+	lng := 0.0
+
+	// fmt.Println(response)
+
+	// Récupérer les coordonnées géographiques (latitude et longitude)
+	results := response["results"].([]interface{})
+	if len(results) > 0 {
+		geometry := results[0].(map[string]interface{})["geometry"].(map[string]interface{})
+		location := geometry["location"].(map[string]interface{})
+		lat = location["lat"].(float64)
+		lng = location["lng"].(float64)
+		fmt.Printf("Coordonnées de %s: Latitude %f, Longitude %f\n", placeName, lat, lng)
+	} else {
+		fmt.Println("Aucun résultat trouvé pour", placeName)
+	}
+
+	return lat, lng
 }
