@@ -7,13 +7,16 @@ async function initMap(locations) {
   }
 
   console.log(locations);
-  const latLngPairs = locations[0].match(/-?\d+\.\d+/g);
+  const latLngDateTriples = locations[0].match(
+    /\{-?\d+\.\d+ -?\d+\.\d+\s\[\d{2}-\d{2}-\d{4}(?:\s\d{2}-\d{2}-\d{4})*\]\}/g
+  );
   const positions = [];
 
-  for (let i = 0; i < latLngPairs.length; i += 2) {
-    const lat = parseFloat(latLngPairs[i]);
-    const lng = parseFloat(latLngPairs[i + 1]);
-    positions.push({ lat, lng });
+  for (const latLngDate of latLngDateTriples) {
+    const [lat, lng, ...dates] = latLngDate.match(
+      /-?\d+\.\d+|-?\d{2}-\d{2}-\d{4}/g
+    );
+    positions.push({ lat: parseFloat(lat), lng: parseFloat(lng), dates });
   }
 
   console.log(positions);
@@ -43,10 +46,17 @@ async function initMap(locations) {
 
   // Create waypoints for all positions except the first one
   for (let i = 0; i < positions.length; i++) {
+    dateString = "";
+    for (let j = 0; j < positions[i].dates.length; j++) {
+      dateString += positions[i].dates[j];
+      if (j < positions[i].dates.length - 1) {
+        dateString += "\n";
+      }
+    }
     new AdvancedMarkerView({
       position: positions[i],
       map: map,
-      title: "Waypoint " + (i + 1),
+      title: dateString,
     });
   }
 }

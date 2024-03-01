@@ -244,9 +244,9 @@ func SetArtistsRoutes(myapi *api.API) {
 
 			band.LocationsCoordinates = []api.Location{}
 
-			for k, _ := range stringListLocations.DatesLocations {
+			for k, v := range stringListLocations.DatesLocations {
 				lat, lng := GeocodeAddress(k)
-				thisLocation := api.Location{Lat: lat, Lng: lng}
+				thisLocation := api.Location{Lat: lat, Lng: lng, Dates: v}
 				band.LocationsCoordinates = append(band.LocationsCoordinates, thisLocation)
 			}
 

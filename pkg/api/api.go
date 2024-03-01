@@ -24,6 +24,7 @@ func (a *API) ShowAPI() {
 type Location struct {
 	Lat float64 `json:"lat"`
 	Lng float64 `json:"lng"`
+	Dates []string `json:"dates"`
 }
 
 type Band struct {
