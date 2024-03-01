@@ -1,4 +1,3 @@
-// Initialize and add the map
 let map;
 
 async function initMap(locations) {
@@ -8,13 +7,13 @@ async function initMap(locations) {
 
   console.log(locations);
   const latLngDateTriples = locations[0].match(
-    /\{-?\d+\.\d+ -?\d+\.\d+\s\[\d{2}-\d{2}-\d{4}(?:\s\d{2}-\d{2}-\d{4})*\]\}/g
+    /\{-?\d+\.\d+ -?\d+\.\d+\s\[\d{2}-\d{2}-\d{4}(?:\s\d{2}-\d{2}-\d{4})*\]\}/g // {lat lng [date1 date2 ...]} || oui je fais des trucs bizzare des des fois
   );
   const positions = [];
 
   for (const latLngDate of latLngDateTriples) {
     const [lat, lng, ...dates] = latLngDate.match(
-      /-?\d+\.\d+|-?\d{2}-\d{2}-\d{4}/g
+      /-?\d+\.\d+|-?\d{2}-\d{2}-\d{4}/g // lat, lng, and dates || j'ai du le faire une deuxième fois merdeeeeeeeeeeeeeeeee
     );
     positions.push({ lat: parseFloat(lat), lng: parseFloat(lng), dates });
   }
@@ -32,25 +31,21 @@ async function initMap(locations) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  // Request needed libraries.
-  //@ts-ignore
   const { Map } = await google.maps.importLibrary("maps");
   const { AdvancedMarkerView } = await google.maps.importLibrary("marker");
 
-  // The map, centered at the first position
   map = new Map(document.getElementById("map"), {
     zoom: 4,
     center: positions[0],
     mapId: "DEMO_MAP_ID",
   });
 
-  // Create waypoints for all positions except the first one
   for (let i = 0; i < positions.length; i++) {
-    dateString = "";
+    dateString = "Date : ";
     for (let j = 0; j < positions[i].dates.length; j++) {
       dateString += positions[i].dates[j];
       if (j < positions[i].dates.length - 1) {
-        dateString += "\n";
+        dateString += "\nDate : ";
       }
     }
     new AdvancedMarkerView({
@@ -61,12 +56,10 @@ async function initMap(locations) {
   }
 }
 
-// recupere les data de la div map et les affiche
 function showMap() {
   var mapDiv = document.getElementById("map");
   var locations = mapDiv.getAttribute("data-locations");
 
-  // Initialiser la carte Google Maps
   initMap(locations);
 }
 
