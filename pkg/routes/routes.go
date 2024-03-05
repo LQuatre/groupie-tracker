@@ -13,10 +13,10 @@ import (
 	"groupietracker.com/m/pkg/api"
 )
 
-var staticDir = os.Getenv("STATIC_DIR") 
+var staticDir = os.Getenv("STATIC_DIR")
 
 func Setup(indexPath string, apiUrl string, myApi *api.API) {
-	fileServer := http.FileServer(http.Dir(staticDir+"web/static/"))
+	fileServer := http.FileServer(http.Dir(staticDir + "web/static/"))
 	http.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +42,7 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	}
 	err = SetSearchRoutes(myApi)
 	if err != nil {
-		
+
 		return
 	}
 	err = SetFilterRoutes(myApi)
@@ -236,18 +236,15 @@ func SetArtistsRoutes(myapi *api.API) error {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-
-		if len(parts) == 3 && parts[2] == "" {
+		if parts[2] == "" {
 			bands, err := myapi.GetAllBands()
 			if err != nil {
 				handleError(w, err)
 				return
 			}
-
 			renderTemplate(w, "web/template/galery.html", bands)
 		}
-
-		if len(parts) == 3 && parts[2] != "" {
+		if parts[2] != "" {
 			id := parts[2]
 			idInt, err := strconv.Atoi(id)
 			if err != nil {
@@ -259,7 +256,6 @@ func SetArtistsRoutes(myapi *api.API) error {
 				handleError(w, err)
 				return
 			}
-
 			stringListLocations, err := myapi.GetRelation(idInt)
 			if err != nil {
 				handleError(w, err)
@@ -268,12 +264,11 @@ func SetArtistsRoutes(myapi *api.API) error {
 
 			band.LocationsCoordinates = []api.Location{}
 
-			for k, v := range stringListLocations.DatesLocations {
-				lat, lng := GeocodeAddress(k)
-				thisLocation := api.Location{Lat: lat, Lng: lng, Dates: v}
+			for key, value := range stringListLocations.DatesLocations {
+				lat, lng := GeocodeAddress(key)
+				thisLocation := api.Location{Lat: lat, Lng: lng, Dates: value}
 				band.LocationsCoordinates = append(band.LocationsCoordinates, thisLocation)
 			}
-
 			renderTemplate(w, "web/template/artist.html", band)
 		}
 	})

@@ -22,8 +22,8 @@ func (a *API) ShowAPI() {
 }
 
 type Location struct {
-	Lat float64 `json:"lat"`
-	Lng float64 `json:"lng"`
+	Lat   float64  `json:"lat"`
+	Lng   float64  `json:"lng"`
 	Dates []string `json:"dates"`
 }
 
@@ -54,8 +54,10 @@ type Relationship struct {
 	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
+var checkAPIBands = false
+
 func (a *API) GetAllBands() ([]Band, error) {
-	if len(a.Bands) > 1 {
+	if checkAPIBands {
 		return a.Bands, nil
 	}
 
@@ -76,6 +78,7 @@ func (a *API) GetAllBands() ([]Band, error) {
 	}
 
 	a.Bands = bands
+	checkAPIBands = true
 
 	return bands, nil
 }
