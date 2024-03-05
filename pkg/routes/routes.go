@@ -13,26 +13,13 @@ import (
 	"groupietracker.com/m/pkg/api"
 )
 
-func main() {
-    // Créer un gestionnaire pour servir vos routes
-    handler := http.NewServeMux()
-    handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        fmt.Fprintf(w, "Bienvenue sur le site !")
-    })
-
-    // Ajouter le middleware de journalisation
-    http.ListenAndServe(":8080", nil)
-}
-
 var staticDir = os.Getenv("STATIC_DIR") 
 
 func Setup(indexPath string, apiUrl string, myApi *api.API) {
-	handler := http.NewServeMux()
-
 	fileServer := http.FileServer(http.Dir(staticDir+"web/static/"))
-	handler.Handle("/static/", http.StripPrefix("/static", fileServer))
+	http.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	handler.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
 			tmpl, err := template.ParseFiles(indexPath)
 			if err != nil {
@@ -48,22 +35,22 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 		}
 	})
 
-	err := SetupAPIRoutes(apiUrl, handler)
+	err := SetupAPIRoutes(apiUrl)
 	if err != nil {
 		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
 		return
 	}
-	err = SetSearchRoutes(myApi, handler)
+	err = SetSearchRoutes(myApi)
 	if err != nil {
 		
 		return
 	}
-	err = SetFilterRoutes(myApi, handler)
+	err = SetFilterRoutes(myApi)
 	if err != nil {
 		// handle error
 		return
 	}
-	err = SetArtistsRoutes(myApi, handler)
+	err = SetArtistsRoutes(myApi)
 	if err != nil {
 		// handle error
 		return
@@ -75,15 +62,15 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	}
 }
 
-func SetupAPIRoutes(apiUrl string, handler *http.ServeMux) error {
+func SetupAPIRoutes(apiUrl string) error {
 	if apiUrl == "" {
 		return fmt.Errorf("API URL is required")
 	}
-	handler.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		handleAPIRequest(w, apiUrl)
 	})
 
-	handler.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		handleAPIEndpointRequest(w, r, apiUrl)
 	})
 	return nil
@@ -164,7 +151,7 @@ func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl str
 	}
 }
 
-func SetSearchRoutes(api *api.API, handler *http.ServeMux) error {
+func SetSearchRoutes(api *api.API) error {
 	if api == nil {
 		return fmt.Errorf("API is required")
 	}
@@ -185,7 +172,7 @@ func SetSearchRoutes(api *api.API, handler *http.ServeMux) error {
 	return nil
 }
 
-func SetFilterRoutes(myapi *api.API, handler *http.ServeMux) error {
+func SetFilterRoutes(myapi *api.API) error {
 	if myapi == nil {
 		return fmt.Errorf("API is required")
 	}
@@ -239,11 +226,11 @@ func SetFilterRoutes(myapi *api.API, handler *http.ServeMux) error {
 	return nil
 }
 
-func SetArtistsRoutes(myapi *api.API, handler *http.ServeMux) error {
+func SetArtistsRoutes(myapi *api.API) error {
 	if myapi == nil {
 		return fmt.Errorf("API is required")
 	}
-	handler.HandleFunc("/artists/", func(w http.ResponseWriter, r *http.Request) {
+	http.HandleFunc("/artists/", func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(r.URL.Path, "/")
 		if len(parts) < 2 {
 			w.WriteHeader(http.StatusNotFound)
