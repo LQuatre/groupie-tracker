@@ -4,12 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Artist</title>
-    <link
-      rel="stylesheet"
-      type="text/css"
-      href="/static/web/assets/artist.css"
-    />
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o&callback=console.debug&libraries=maps,marker&v=beta"></script>
+    <link rel="stylesheet" type="text/css" href="/static/assets/artist.css" />
+    <script
+      async
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o&callback=console.debug&libraries=maps,marker&v=beta"
+    ></script>
   </head>
   <body>
     <h1>Artist Profile</h1>
@@ -21,9 +20,13 @@
       <p>First Album: {{ .FirstAlbum }}</p>
       <div id="map" data-locations="{{ .LocationsCoordinates }}"></div>
     </div>
-    
-    <script src="/static/web/assets/artist.js"></script>
-    <gmp-map center="43.60826110839844,1.3836721181869507" zoom="14" map-id="DEMO_MAP_ID">
+
+    <script src="/static/assets/artist.js"></script>
+    <gmp-map
+      center="43.60826110839844,1.3836721181869507"
+      zoom="14"
+      map-id="DEMO_MAP_ID"
+    >
       <gmp-advanced-marker title="My location"></gmp-advanced-marker>
     </gmp-map>
   </body>

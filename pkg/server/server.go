@@ -14,6 +14,4 @@ func StartServer() {
 	myAPI.ShowAPI()
 
 	routes.Setup("web/template/index.html", apiUrl, myAPI)
-
-	routes.Run()
 }
