@@ -48,12 +48,49 @@ nav ul {
 
 nav ul li {
   margin-right: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 600px; /* Définir une largeur maximale pour le formulaire */
 }
 
 nav ul li a {
   color: #fff;
   text-decoration: none;
 }
+
+nav ul li {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: 600px; /* Définir une largeur maximale pour le formulaire */
+}
+
+nav ul li form {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+}
+
+nav ul li label,
+nav ul li input[type="number"],
+nav ul li input[type="text"],
+nav ul li select {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+nav ul li button {
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
 .search-bar {
   display: flex;
   align-items: center;
@@ -75,37 +112,6 @@ nav ul li a {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-}
-
-.filter-form {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  max-width: 600px; /* Définir une largeur maximale pour le formulaire */
-}
-
-.filter-form label,
-.filter-form input[type="number"],
-.filter-form input[type="text"],
-.filter-form select {
-  flex: 1;
-  padding: 5px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-}
-
-.filter-form button {
-  padding: 10px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-/* Main styles */
-main {
-  padding: 20px;
 }
 
 section {

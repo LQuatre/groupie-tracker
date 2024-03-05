@@ -1,0 +1,104 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+#login {
+    width: 300px;
+    margin: 0 auto;
+    margin-top: 100px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#login h2 {
+    margin: 0 0 20px 0;
+    padding: 0;
+    text-align: center;
+}
+
+#login label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#login input[type="text"],
+#login input[type="password"] {
+    width: 92.5%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+#login button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+}
+
+#login button:hover {
+    background-color: #444;
+}
+
+#register {
+    width: 300px;
+    margin: 0 auto;
+    margin-top: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+#register h2 {
+    margin: 0 0 20px 0;
+    padding: 0;
+    text-align: center;
+}
+
+#register label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+#register input[type="text"],
+#register input[type="password"],
+#register input[type="email"]{
+    width: 92.5%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+#register button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+}
+
+#register button:hover {
+    background-color: #444;
+}

@@ -47,12 +47,22 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	}
 	err = SetFilterRoutes(myApi)
 	if err != nil {
-		// handle error
+		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
 		return
 	}
 	err = SetArtistsRoutes(myApi)
 	if err != nil {
-		// handle error
+		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
+		return
+	}
+	err = SetLoginRoutes(myApi)
+	if err != nil {
+		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
+		return
+	}
+	err = SetRegisterRoutes(myApi)
+	if err != nil {
+		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
 		return
 	}
 
@@ -270,6 +280,63 @@ func SetArtistsRoutes(myapi *api.API) error {
 				band.LocationsCoordinates = append(band.LocationsCoordinates, thisLocation)
 			}
 			renderTemplate(w, "web/template/artist.html", band)
+		}
+	})
+	return nil
+}
+
+func SetLoginRoutes(myapi *api.API) error {
+	if myapi == nil {
+		return fmt.Errorf("API is required")
+	}
+	http.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			renderTemplate(w, "web/template/login.html", nil)
+		} else if r.Method == "POST" {
+			err := r.ParseForm()
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			username := r.FormValue("username")
+			password := r.FormValue("password")
+			err = myapi.Login(username, password)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			http.Redirect(w, r, "/artists", http.StatusFound)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	return nil
+}
+
+func SetRegisterRoutes(myapi *api.API) error {
+	if myapi == nil {
+		return fmt.Errorf("API is required")
+	}
+	http.HandleFunc("/register", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			renderTemplate(w, "web/template/register.html", nil)
+		} else if r.Method == "POST" {
+			err := r.ParseForm()
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			username := r.FormValue("username")
+			password := r.FormValue("password")
+			mail := r.FormValue("mail")
+			err = myapi.Register(username, password, mail)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			http.Redirect(w, r, "/login", http.StatusFound)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	return nil

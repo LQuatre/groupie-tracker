@@ -231,3 +231,13 @@ func (a *API) GetRelation(relationshipID int) (*Relationship, error) {
 
 	return relationship, nil
 }
+
+func (a *API) Register(username, password, mail string) error {
+
+	return nil
+}
+
+func (a *API) Login(username, password string) error {
+
+	return nil
+}
