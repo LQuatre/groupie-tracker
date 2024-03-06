@@ -195,3 +195,13 @@ footer p {
     margin-bottom: 0; /* Supprime la marge en bas de la dernière carte */
   }
 }
+
+nav ul li select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+nav ul li select option {
+  padding: 5px;
+}
