@@ -80,7 +80,10 @@ nav ul li select {
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.3); /* Couleur d'arrière-plan avec une opacité de 0.3 */
+  color: rgba(255, 255, 255, 1); /* Couleur du texte avec une opacité de 1 */
 }
+
 
 nav ul li button {
   padding: 10px;
@@ -151,12 +154,14 @@ section h2 {
   border-radius: 4px;
   padding: 5px;
   width: 100%;
+  border: none;
 }
 
 .artist-card h3,
 .concert-card h3 {
   font-size: 18px;
   margin-bottom: 5px;
+  text-align: center;
 }
 
 .artist-card p,
