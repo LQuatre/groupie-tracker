@@ -11,15 +11,30 @@ import (
 	"text/template"
 
 	"groupietracker.com/m/pkg/api"
+	"groupietracker.com/m/pkg/user"
 )
 
 var staticDir = os.Getenv("STATIC_DIR")
 
 func Setup(indexPath string, apiUrl string, myApi *api.API) {
+	// Configuration du serveur de fichiers statiques
 	fileServer := http.FileServer(http.Dir(staticDir + "web/static/"))
 	http.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// Configuration des routes
+	http.HandleFunc("/", handleIndex(indexPath))
+	setupRoutes(apiUrl, myApi)
+
+	// Démarrage du serveur
+	fmt.Println("Server started at http://localhost:8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		fmt.Printf("Erreur lors du démarrage du serveur: %v\n", err)
+	}
+}
+
+// Fonction pour gérer l'index et les requêtes vers /index.html
+func handleIndex(indexPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
 			tmpl, err := template.ParseFiles(indexPath)
 			if err != nil {
@@ -33,46 +48,34 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 				return
 			}
 		}
-	})
-
-	err := SetupAPIRoutes(apiUrl)
-	if err != nil {
-		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
-		return
-	}
-	err = SetSearchRoutes(myApi)
-	if err != nil {
-
-		return
-	}
-	err = SetFilterRoutes(myApi)
-	if err != nil {
-		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
-		return
-	}
-	err = SetArtistsRoutes(myApi)
-	if err != nil {
-		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
-		return
-	}
-	err = SetLoginRoutes(myApi)
-	if err != nil {
-		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
-		return
-	}
-	err = SetRegisterRoutes(myApi)
-	if err != nil {
-		fmt.Printf("Erreur lors de la configuration des routes de l'API: %v\n", err)
-		return
-	}
-
-	fmt.Println("Server started at http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		fmt.Printf("Erreur lors du démarrage du serveur: %v\n", err)
 	}
 }
 
-func SetupAPIRoutes(apiUrl string) error {
+// Configuration des routes API et autres routes
+func setupRoutes(apiUrl string, myApi *api.API) {
+	routes := []struct {
+		route func(string) error
+	}{
+		{func(s string) error { return SetAPIRoutes(apiUrl) }},
+		{func(s string) error { return SetSearchRoutes(myApi) }},
+		{func(s string) error { return SetFilterRoutes(myApi) }},
+		{func(s string) error { return SetArtistsRoutes(myApi) }},
+		{func(s string) error { return SetLoginRoutes(myApi) }},
+		{func(s string) error { return SetRegisterRoutes(myApi) }},
+		{func(s string) error { return SetLogoutRoutes(myApi) }},
+		{func(s string) error { return SetProfileRoutes(myApi) }},
+	}
+
+	for _, r := range routes {
+		if err := r.route(apiUrl); err != nil {
+			fmt.Printf("Erreur lors de la configuration des routes: %v\n", err)
+			return
+		}
+	}
+}
+
+
+func SetAPIRoutes(apiUrl string) error {
 	if apiUrl == "" {
 		return fmt.Errorf("API URL is required")
 	}
@@ -168,19 +171,60 @@ func SetSearchRoutes(api *api.API) error {
 	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == "GET" {
 			query := r.URL.Query().Get("query")
-			bands, err := api.GetBandFromSearch(query)
+
+			if query != "" {
+				bands, err := api.GetBandFromSearch(query)
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+
+				data := DataToWeb{Bands: bands}
+				_, err = r.Cookie("loggedIn")
+				if err != nil {
+					data.UserIsLoggedIn = false
+				} else {
+					data.UserIsLoggedIn = true
+					cookie, err := r.Cookie("username")
+					if err != nil {
+						handleError(w, err)
+						return
+					}
+					data.Username = cookie.Value
+				}
+
+				onlySendData(w, data)
+			}
+
+			bands, err := api.GetAllBands()
 			if err != nil {
 				handleError(w, err)
 				return
 			}
+			data := DataToWeb{Bands: bands}
 
-			renderTemplate(w, "web/template/galery.html", bands)
+			_, err = r.Cookie("loggedIn")
+			if err != nil {
+				data.UserIsLoggedIn = false
+			} else {
+				data.UserIsLoggedIn = true
+				cookie, err := r.Cookie("username")
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+				data.Username = cookie.Value
+			}
+
+			onlySendData(w, data)
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	return nil
 }
+
+
 
 func SetFilterRoutes(myapi *api.API) error {
 	if myapi == nil {
@@ -228,12 +272,31 @@ func SetFilterRoutes(myapi *api.API) error {
 				return
 			}
 
-			renderTemplate(w, "web/template/galery.html", filteredBands)
+			data := DataToWeb{Bands: filteredBands}
+			_, err = r.Cookie("loggedIn")
+			if err != nil {
+				data.UserIsLoggedIn = false
+			} else {
+				data.UserIsLoggedIn = true
+				cookie, err := r.Cookie("username")
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+				data.Username = cookie.Value
+			}
+			renderTemplate(w, "web/template/galery.html", data)
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	return nil
+}
+
+type DataToWeb struct {
+	Bands []api.Band
+	UserIsLoggedIn bool
+	Username string
 }
 
 func SetArtistsRoutes(myapi *api.API) error {
@@ -246,13 +309,27 @@ func SetArtistsRoutes(myapi *api.API) error {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+		
 		if parts[2] == "" {
 			bands, err := myapi.GetAllBands()
 			if err != nil {
 				handleError(w, err)
 				return
 			}
-			renderTemplate(w, "web/template/galery.html", bands)
+			data := DataToWeb{Bands: bands}
+			_, err = r.Cookie("loggedIn")
+			if err != nil {
+				data.UserIsLoggedIn = false
+			} else {
+				data.UserIsLoggedIn = true
+				cookie, err := r.Cookie("username")
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+				data.Username = cookie.Value
+			}
+			renderTemplate(w, "web/template/galery.html", data)
 		}
 		if parts[2] != "" {
 			id := parts[2]
@@ -285,6 +362,14 @@ func SetArtistsRoutes(myapi *api.API) error {
 	return nil
 }
 
+type UserStruct struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Mail     string `json:"mail"`
+	Starred  string `json:"starred"`
+	Grade    string `json:"grade"`
+}
+
 func SetLoginRoutes(myapi *api.API) error {
 	if myapi == nil {
 		return fmt.Errorf("API is required")
@@ -300,12 +385,30 @@ func SetLoginRoutes(myapi *api.API) error {
 			}
 			username := r.FormValue("username")
 			password := r.FormValue("password")
-			err = myapi.Login(username, password)
+			user.SetMySQL()
+			thisuser, err := user.Login(w, username, password)
+			fmt.Println(thisuser)
 			if err != nil {
 				handleError(w, err)
 				return
 			}
-			http.Redirect(w, r, "/artists", http.StatusFound)
+			if thisuser != (user.UserStruct{}) {
+				// Ajouter un cookie indiquant la connexion réussie
+				http.SetCookie(w, &http.Cookie{
+					Name:  "loggedIn",
+					Value: "true",
+					Path:  "/",
+				})
+				http.SetCookie(w, &http.Cookie{
+					Name:  "username",
+					Value: thisuser.Username,
+					Path:  "/",
+				})
+				http.Redirect(w, r, "/artists", http.StatusFound)
+				fmt.Println("User logged in successfully.")
+				return
+			}
+			http.Redirect(w, r, "/login", http.StatusFound)
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
@@ -329,7 +432,9 @@ func SetRegisterRoutes(myapi *api.API) error {
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 			mail := r.FormValue("mail")
-			err = myapi.Register(username, password, mail)
+			user.SetMySQL()
+			thisuser, err := user.Register(username, password, mail)
+			fmt.Println(thisuser)
 			if err != nil {
 				handleError(w, err)
 				return
@@ -341,6 +446,64 @@ func SetRegisterRoutes(myapi *api.API) error {
 	})
 	return nil
 }
+
+func SetLogoutRoutes(myapi *api.API) error {
+	if myapi == nil {
+		return fmt.Errorf("API is required")
+	}
+	http.HandleFunc("/logout", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			// Supprimer le cookie indiquant la connexion réussie
+			http.SetCookie(w, &http.Cookie{
+				Name:   "loggedIn",
+				Value:  "",
+				Path:   "/",
+				MaxAge: -1,
+			})
+			http.Redirect(w, r, "/artists/", http.StatusFound)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	return nil
+}
+
+func SetProfileRoutes(myapi *api.API) error {
+	if myapi == nil {
+		return fmt.Errorf("API is required")
+	}
+	http.HandleFunc("/profile", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			// Vérifier si l'utilisateur est connecté
+			_, err := r.Cookie("loggedIn")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
+			}
+
+			// Récupérer le nom d'utilisateur à partir du cookie
+			cookie, err := r.Cookie("username")
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			username := cookie.Value
+
+			// Récupérer les informations de l'utilisateur à partir de l'API
+			user, err := user.GetUser(username)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			// Afficher le profil de l'utilisateur
+			renderTemplate(w, "web/template/profile.html", user)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	return nil
+}	
 
 func handleError(w http.ResponseWriter, err error) {
 	fmt.Printf("Error: %v\n", err)
@@ -355,6 +518,15 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 
 	err = t.Execute(w, data)
+	if err != nil {
+		handleError(w, err)
+		return
+	}
+}
+
+func onlySendData(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(data)
 	if err != nil {
 		handleError(w, err)
 		return

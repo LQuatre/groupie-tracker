@@ -20,7 +20,7 @@ body {
 }
 
 body::-webkit-scrollbar {
- display: none;
+  display: none;
 }
 
 .container {
@@ -148,9 +148,10 @@ section h2 {
 .artist-card img,
 .concert-card img {
   border: 1px solid #ddd;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 5px;
   width: 100%;
+  border: none;
 }
 
 .artist-card h3,

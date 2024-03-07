@@ -1,31 +1,31 @@
 <!DOCTYPE html>
 <html lang="fr">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Groupie Tracker</title>
-        <link rel="stylesheet" type="text/css" href="/static/assets/login.css" />
-        <link rel="stylesheet" href="../assets/login.css" />
-    </head>
-    <body>
-        <header>
-            <h1>Groupie Tracker</h1>
-        </header>
-        <main>
-            <section id="register">
-                <h2>Register</h2>
-                <form action="/register" method="POST">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" />
-                    <label for="password">Password:</label>
-                    <input type="password" id="password" name="password" />
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" />
-                    <button type="submit">Register</button>
-                </form>
-            </section>
-        </main>
-        <footer>
-        </footer>
-    </body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Groupie Tracker</title>
+    <link rel="stylesheet" type="text/css" href="/static/assets/login.css" />
+    <link rel="stylesheet" href="../assets/login.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Groupie Tracker</h1>
+    </header>
+    <main>
+      <section id="register">
+        <h2>Register</h2>
+        <form action="/register" method="POST">
+          <label for="username">Username:</label>
+          <input type="text" id="username" name="username" />
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" />
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" />
+          <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="/login">Login</a></p>
+      </section>
+    </main>
+    <footer></footer>
+  </body>
 </html>
