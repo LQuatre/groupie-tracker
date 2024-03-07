@@ -16,6 +16,13 @@ import (
 
 var staticDir = os.Getenv("STATIC_DIR")
 
+type DataToWeb struct {
+	Bands []api.Band
+	UserIsLoggedIn bool
+	Username string
+}
+
+
 func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	// Configuration du serveur de fichiers statiques
 	fileServer := http.FileServer(http.Dir(staticDir + "web/static/"))
@@ -164,67 +171,80 @@ func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl str
 	}
 }
 
-func SetSearchRoutes(api *api.API) error {
-	if api == nil {
-		return fmt.Errorf("API is required")
-	}
-	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			query := r.URL.Query().Get("query")
+func SetSearchRoutes(myapi *api.API) error {
+    if myapi == nil {
+        return fmt.Errorf("API is required")
+    }
+    http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+        if r.Method == "GET" {
+            query := r.URL.Query().Get("query")
 
-			if query != "" {
-				bands, err := api.GetBandFromSearch(query)
-				if err != nil {
-					handleError(w, err)
+            if query != "" {
+                bands, err := myapi.GetBandFromSearch(query)
+                if err != nil {
+                    handleError(w, err)
+                    return
+                }
+
+                dataToWeb := DataToWeb{Bands: bands}
+                _, err = r.Cookie("loggedIn")
+                if err != nil {
+                    dataToWeb.UserIsLoggedIn = false
+                } else {
+                    dataToWeb.UserIsLoggedIn = true
+                    cookie, err := r.Cookie("username")
+                    if err != nil {
+                        handleError(w, err)
+                        return
+                    }
+                    dataToWeb.Username = cookie.Value
+                }
+
+                // If the request comes from a "submit" button on the search page, redirect to the gallery page
+				// verifie s'il y a un search dans l'url et si oui, renvoie la page de recherche
+				// if r.FormValue("submit") == "search" { ne fonctionne pas
+				fmt.Println(r.URL.Query())
+				if r.URL.Query().Has("submit") {
+					fmt.Println("galery.html")
+					renderTemplate(w, "web/template/galery.html", dataToWeb)
+					http.Redirect(w, r, "/search", http.StatusFound)
 					return
 				}
+				fmt.Println("search.html")
 
-				data := DataToWeb{Bands: bands}
-				_, err = r.Cookie("loggedIn")
-				if err != nil {
-					data.UserIsLoggedIn = false
-				} else {
-					data.UserIsLoggedIn = true
-					cookie, err := r.Cookie("username")
-					if err != nil {
-						handleError(w, err)
-						return
-					}
-					data.Username = cookie.Value
-				}
+                renderTemplate(w, "web/template/search.html", dataToWeb)
+                return
+            }
 
-				onlySendData(w, data)
-			}
+            // Si aucune requête de recherche n'est effectuée, renvoyer simplement la page d'accueil
+            bands, err := myapi.GetAllBands()
+            if err != nil {
+                handleError(w, err)
+                return
+            }
+            data := DataToWeb{Bands: bands}
 
-			bands, err := api.GetAllBands()
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-			data := DataToWeb{Bands: bands}
+            _, err = r.Cookie("loggedIn")
+            if err != nil {
+                data.UserIsLoggedIn = false
+            } else {
+                data.UserIsLoggedIn = true
+                cookie, err := r.Cookie("username")
+                if err != nil {
+                    handleError(w, err)
+                    return
+                }
+                data.Username = cookie.Value
+            }
 
-			_, err = r.Cookie("loggedIn")
-			if err != nil {
-				data.UserIsLoggedIn = false
-			} else {
-				data.UserIsLoggedIn = true
-				cookie, err := r.Cookie("username")
-				if err != nil {
-					handleError(w, err)
-					return
-				}
-				data.Username = cookie.Value
-			}
-
-			onlySendData(w, data)
-		} else {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		}
-	})
-	return nil
+            // Rendre le modèle HTML avec les données
+            renderTemplate(w, "web/template/search.html", data)
+        } else {
+            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+        }
+    })
+    return nil
 }
-
-
 
 func SetFilterRoutes(myapi *api.API) error {
 	if myapi == nil {
@@ -291,12 +311,6 @@ func SetFilterRoutes(myapi *api.API) error {
 		}
 	})
 	return nil
-}
-
-type DataToWeb struct {
-	Bands []api.Band
-	UserIsLoggedIn bool
-	Username string
 }
 
 func SetArtistsRoutes(myapi *api.API) error {
@@ -524,14 +538,24 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 }
 
-func onlySendData(w http.ResponseWriter, data interface{}) {
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(data)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
+func onlySendData(w http.ResponseWriter, data DataToWeb) {
+    // Convertir les données en JSON
+    jsonData, err := json.Marshal(data)
+    if err != nil {
+        handleError(w, err)
+        return
+    }
+
+    // Définir le type de contenu de la réponse comme JSON
+    w.Header().Set("Content-Type", "application/json")
+
+    // Envoyer les données JSON en réponse
+    _, err = w.Write(jsonData)
+    if err != nil {
+        handleError(w, err)
+    }
 }
+
 
 func GeocodeAddress(placeName string) (float64, float64) {
 	apiKey := "AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o"

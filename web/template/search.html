@@ -1,0 +1,13 @@
+<main>
+  <section id="artists">
+    <h2>Featured Artists</h2>
+    {{range .Bands}}
+    <a href="/artists/{{.ID}}">
+      <div class="artist-card">
+        <img src="{{.Image}}" alt="{{.Name}}" />
+        <h3>{{.Name}}</h3>
+      </div>
+    </a>
+    {{end}}
+  </section>
+</main>

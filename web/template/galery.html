@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="/static/assets/galery.css" />
+    <link rel="stylesheet" href="../assets/galery.css" />
     <title>Groupie Tracker</title>
   </head>
   <body>
@@ -19,7 +20,7 @@
                 name="query"
                 placeholder="Search..."
               />
-              <button type="submit">Search</button>
+              <button type="submit" id="submit" name="submit"></button>
             </form>
           </li>
           <li>
@@ -49,7 +50,6 @@
               <input type="text" id="concert-date" name="concert-date" />
               <button type="submit">Filter</button>
             </form>
-<<<<<<< HEAD
             {{ if not .UserIsLoggedIn }}
             <button class="button" onclick="window.location.href='/register'">
               Register
@@ -65,9 +65,6 @@
               Profile
             </button>
             {{ end }}
-=======
-            <button class="button" onclick="window.location.href='/login'">Login</button>
->>>>>>> a13d5b1ef203fdb70fdcf620d80faf8e9efd0fb0
           </li>
         </ul>
       </nav>
@@ -92,24 +89,7 @@
         Mardinli
       </p>
     </footer>
-    <script>
-      document
-        .getElementById("searchInput")
-        .addEventListener("input", function () {
-          var query = this.value;
-          var xhr = new XMLHttpRequest();
-          xhr.open("GET", "/search?query=" + query, true);
-          xhr.onreadystatechange = function () {
-            if (xhr.readyState == XMLHttpRequest.DONE) {
-              if (xhr.status == 200) {
-                document.getElementById("artists").innerHTML = xhr.responseText;
-              } else {
-                console.error("Error:", xhr.status);
-              }
-            }
-          };
-          xhr.send();
-        });
-    </script>
+
+    <script src="../static/assets/galery.js"></script>
   </body>
 </html>
