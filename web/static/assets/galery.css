@@ -20,7 +20,7 @@ body {
 }
 
 body::-webkit-scrollbar {
-  display: none;
+ display: none;
 }
 
 .container {
@@ -137,7 +137,7 @@ section h2 {
 .concert-card {
   background-color: #fff;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   width: 450px; /* 5 cartes par ligne */
