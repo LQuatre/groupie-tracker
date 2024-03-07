@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type API struct {
@@ -230,14 +232,4 @@ func (a *API) GetRelation(relationshipID int) (*Relationship, error) {
 	a.Relationships = append(a.Relationships, *relationship)
 
 	return relationship, nil
-}
-
-func (a *API) Register(username, password, mail string) error {
-
-	return nil
-}
-
-func (a *API) Login(username, password string) error {
-
-	return nil
 }
