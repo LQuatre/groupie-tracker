@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -65,7 +66,6 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	}{
 		{func(s string) error { return SetAPIRoutes(apiUrl) }},
 		{func(s string) error { return SetSearchRoutes(myApi) }},
-		{func(s string) error { return SetFilterRoutes(myApi) }},
 		{func(s string) error { return SetArtistsRoutes(myApi) }},
 		{func(s string) error { return SetLoginRoutes(myApi) }},
 		{func(s string) error { return SetRegisterRoutes(myApi) }},
@@ -171,147 +171,160 @@ func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl str
 	}
 }
 
+var redirectNeeded bool = false
+var redirected bool = false
+
 func SetSearchRoutes(myapi *api.API) error {
     if myapi == nil {
         return fmt.Errorf("API is required")
     }
-    http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-        if r.Method == "GET" {
-            query := r.URL.Query().Get("query")
 
-            if query != "" {
-                bands, err := myapi.GetBandFromSearch(query)
+    http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+        if r.Method != "GET" {
+            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+            return
+        }
+
+        // Filtrer les paramètres de requête vides et le paramètre submit
+        filteredParams := make(url.Values)
+        for key, values := range r.URL.Query() {
+            if key != "submit" && len(values) > 0 {
+                filteredParams[key] = values
+            }
+        }
+
+        // Générer l'URL sans les paramètres de requête vides et le paramètre submit
+        cleanURL := "/search"
+        if len(filteredParams) > 0 {
+            cleanURL += "?" + filteredParams.Encode()
+        }
+
+        query := r.URL.Query().Get("query")
+        submit := r.URL.Query().Has("submit")
+
+        if submit {
+            fmt.Println("Redirection vers", cleanURL)
+            redirectNeeded = true
+            http.Redirect(w, r, cleanURL, http.StatusFound)
+            return
+        } else {
+            redirected = false
+        }
+
+        dataToWeb := DataToWeb{}
+
+		hasFilter := len(filteredParams) > 0
+
+        if hasFilter {
+            // Extrait les valeurs des filtres
+            members := r.FormValue("members")
+            numberOfMembers := r.FormValue("numberofmember")
+            location := r.FormValue("location")
+            createDate := r.FormValue("creation-date")
+            firstAlbum := r.FormValue("first-album")
+            concertDate := r.FormValue("concert-date")
+
+            // Convertit les valeurs nécessaires en entiers
+            var err error
+            var numberOfMembersInt int
+            if numberOfMembers != "" {
+                numberOfMembersInt, err = strconv.Atoi(numberOfMembers)
                 if err != nil {
                     handleError(w, err)
                     return
                 }
-
-                dataToWeb := DataToWeb{Bands: bands}
-                _, err = r.Cookie("loggedIn")
-                if err != nil {
-                    dataToWeb.UserIsLoggedIn = false
-                } else {
-                    dataToWeb.UserIsLoggedIn = true
-                    cookie, err := r.Cookie("username")
-                    if err != nil {
-                        handleError(w, err)
-                        return
-                    }
-                    dataToWeb.Username = cookie.Value
-                }
-
-                // If the request comes from a "submit" button on the search page, redirect to the gallery page
-				// verifie s'il y a un search dans l'url et si oui, renvoie la page de recherche
-				// if r.FormValue("submit") == "search" { ne fonctionne pas
-				fmt.Println(r.URL.Query())
-				if r.URL.Query().Has("submit") {
-					fmt.Println("galery.html")
-					renderTemplate(w, "web/template/galery.html", dataToWeb)
-					http.Redirect(w, r, "/search", http.StatusFound)
-					return
-				}
-				fmt.Println("search.html")
-
-                renderTemplate(w, "web/template/search.html", dataToWeb)
-                return
             }
 
-            // Si aucune requête de recherche n'est effectuée, renvoyer simplement la page d'accueil
-            bands, err := myapi.GetAllBands()
+            var createDateInt int
+            if createDate != "" {
+                createDateInt, err = strconv.Atoi(createDate)
+                if err != nil {
+                    handleError(w, err)
+                    return
+                }
+            }
+
+            // Filtre les groupes en fonction des paramètres
+            filteredBands, err := myapi.FilterBands(api.Filter{
+                Members:         members,
+                NumberOfMembers: numberOfMembersInt,
+                Location:        location,
+                CreationDate:    createDateInt,
+                FirstAlbum:      firstAlbum,
+                ConcertDate:     concertDate,
+            })
             if err != nil {
                 handleError(w, err)
                 return
             }
-            data := DataToWeb{Bands: bands}
 
-            _, err = r.Cookie("loggedIn")
-            if err != nil {
-                data.UserIsLoggedIn = false
-            } else {
-                data.UserIsLoggedIn = true
-                cookie, err := r.Cookie("username")
-                if err != nil {
-                    handleError(w, err)
-                    return
-                }
-                data.Username = cookie.Value
-            }
-
-            // Rendre le modèle HTML avec les données
-            renderTemplate(w, "web/template/search.html", data)
-        } else {
-            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+            dataToWeb.Bands = filteredBands
         }
-    })
-    return nil
-}
 
-func SetFilterRoutes(myapi *api.API) error {
-	if myapi == nil {
-		return fmt.Errorf("API is required")
-	}
-	http.HandleFunc("/filter", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			members := r.FormValue("members")
-			numberOfMembers := r.FormValue("numberofmember")
-			location := r.FormValue("location")
-			createDate := r.FormValue("creation-date")
-			firstAlbum := r.FormValue("first-album")
-			concertDate := r.FormValue("concert-date")
-
-			var err error
-
-			var numberOfMembersInt int
-			if numberOfMembers != "" {
-				numberOfMembersInt, err = strconv.Atoi(numberOfMembers)
-				if err != nil {
-					handleError(w, err)
-					return
-				}
+		strToInt := func(s string) int {
+			i, err := strconv.Atoi(s)
+			if err != nil {
+				return 0
 			}
+			return i
+		}
 
-			var createDateInt int
-			if createDate != "" {
-				createDateInt, err = strconv.Atoi(createDate)
-				if err != nil {
-					handleError(w, err)
-					return
-				}
-			}
-
-			filteredBands, err := myapi.FilterBands(api.Filter{
-				Members:         members,
-				NumberOfMembers: numberOfMembersInt,
-				Location:        location,
-				CreationDate:    createDateInt,
-				FirstAlbum:      firstAlbum,
-				ConcertDate:     concertDate,
-			})
+		if query == "" && !hasFilter {
+			bands, err := myapi.GetAllBands()
 			if err != nil {
 				handleError(w, err)
 				return
 			}
-
-			data := DataToWeb{Bands: filteredBands}
-			_, err = r.Cookie("loggedIn")
+			dataToWeb.Bands = bands
+		} else if query != "" && hasFilter {
+			filteredBands, err := myapi.FilterBands(api.Filter{
+				Members:         r.FormValue("members"),
+				NumberOfMembers: strToInt(r.FormValue("numberofmember")),
+				Location:        r.FormValue("location"),
+				CreationDate:    strToInt(r.FormValue("creation-date")),
+				FirstAlbum:      r.FormValue("first-album"),
+				ConcertDate:     r.FormValue("concert-date"),
+			})
+			bands, err := myapi.GetBandFromSearchWithBands(query, filteredBands)
 			if err != nil {
-				data.UserIsLoggedIn = false
-			} else {
-				data.UserIsLoggedIn = true
-				cookie, err := r.Cookie("username")
-				if err != nil {
-					handleError(w, err)
-					return
-				}
-				data.Username = cookie.Value
+				handleError(w, err)
+				return
 			}
-			renderTemplate(w, "web/template/galery.html", data)
-		} else {
-			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			dataToWeb.Bands = bands
+		} else if query != "" && !hasFilter {
+			bands, err := myapi.FilterBands(api.Filter{})
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			dataToWeb.Bands = bands
 		}
-	})
-	return nil
+
+
+        // Gestion de l'authentification
+        if _, err := r.Cookie("loggedIn"); err == nil {
+            dataToWeb.UserIsLoggedIn = true
+            if cookie, err := r.Cookie("username"); err == nil {
+                dataToWeb.Username = cookie.Value
+            }
+        }
+
+        // Affiche la page appropriée en fonction de la nécessité de redirection
+        if (redirectNeeded || redirected) {
+            // fmt.Println("Afficahge de la page de redirection")
+            redirectNeeded = false
+            redirected = true
+            renderTemplate(w, "web/template/galery.html", dataToWeb)
+            return
+        }
+
+        // fmt.Println("Affichage des recherche")
+        renderTemplate(w, "web/template/search.html", dataToWeb)
+    })
+
+    return nil
 }
+
 
 func SetArtistsRoutes(myapi *api.API) error {
 	if myapi == nil {
@@ -445,7 +458,7 @@ func SetRegisterRoutes(myapi *api.API) error {
 			}
 			username := r.FormValue("username")
 			password := r.FormValue("password")
-			mail := r.FormValue("mail")
+			mail := r.FormValue("email")
 			user.SetMySQL()
 			thisuser, err := user.Register(username, password, mail)
 			fmt.Println(thisuser)

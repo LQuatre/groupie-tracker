@@ -20,17 +20,12 @@
                 name="query"
                 placeholder="Search..."
               />
-              <button type="submit" id="submit" name="submit"></button>
-            </form>
-          </li>
-          <li>
-            <form action="/filter" method="GET">
               <label for="members">Members</label>
               <input type="text" id="members" name="members" />
               <li class="déroulant">
                 <label for="numberofmember">Number of Members</label>
                 <select id="numberofmember" name="numberofmember">
-                  <option value="">Number of Members</option>
+                  <option value="">All</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
@@ -39,7 +34,6 @@
                   <option value="6">6</option>
                   <option value="7">7</option>
                   <option value="8">8</option>
-                  <option value="">All</option>
                 </select>
               </li>
               <label for="creation-date">Creation Date:</label>
@@ -48,7 +42,7 @@
               <input type="text" id="first-album" name="first-album" />
               <label for="concert-date">Concert Dates:</label>
               <input type="text" id="concert-date" name="concert-date" />
-              <button type="submit">Filter</button>
+              <!-- <button type="submit">Filter</button> -->
             </form>
             {{ if not .UserIsLoggedIn }}
             <button class="button" onclick="window.location.href='/register'">
@@ -70,8 +64,7 @@
       </nav>
     </header>
     <main>
-      <section id="artists">
-        <h2>Featured Artists</h2>
+      <section id="artists" class="artist">
         {{range .Bands}}
         <a href="/artists/{{.ID}}">
           <div class="artist-card">
@@ -85,11 +78,30 @@
 
     <footer>
       <p>
-        &copy; Groupie Tracker. All rights reserved. Lucas Diot | Guillaume
-        Mardinli
+        &copy; Groupie Tracker. Toulouse Ynov Campus @2023-2024. Lucas Diot |
+        Guillaume Mardinli
       </p>
     </footer>
 
     <script src="../static/assets/galery.js"></script>
+    <script>
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
+          var query = this.value;
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/search?query=" + query, true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+              if (xhr.status == 200) {
+                document.getElementById("artists").innerHTML = xhr.responseText;
+              } else {
+                console.error("Error:", xhr.status);
+              }
+            }
+          };
+          xhr.send();
+        });
+    </script>
   </body>
 </html>
