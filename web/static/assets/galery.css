@@ -49,7 +49,6 @@ nav ul {
 nav ul li {
   margin-right: 10px;
   display: flex;
-  flex-direction: row;
   gap: 10px;
   max-width: auto; /* Définir une largeur maximale pour le formulaire */
 }
@@ -61,17 +60,19 @@ nav ul li a {
 
 nav ul li form {
   display: flex;
-  flex-direction: row;
   gap: 10px;
-  align-items: center; /* Aligner verticalement les éléments dans le formulaire */
+  align-items: center;
 }
 
 nav ul li label,
 nav ul li input[type="number"],
 nav ul li input[type="text"],
 nav ul li select {
+  display: flex;
+  align-items: center;
   flex: 1;
   padding: 5px;
+  height: 50px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: rgba(0, 0, 0, 0.3);
@@ -79,8 +80,9 @@ nav ul li select {
 }
 
 nav ul li button {
-  width: 75px;
   padding: 5px;
+  width: 75px;
+  height: 50px;
   border: 1px solid #ccc;
   border-radius: 5px;
   background-color: rgba(0, 0, 0, 0.3);
@@ -90,7 +92,6 @@ nav ul li button {
 .search-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
 }
 
 .search-bar input[type="text"] {
@@ -104,7 +105,7 @@ nav ul li button {
   padding: 10px;
   background-color: #222;
   color: #fff;
-  border: none;
+  border: 1px solid #ccc;
   border-radius: 5px;
 }
 
