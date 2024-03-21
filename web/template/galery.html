@@ -24,11 +24,11 @@
           </li>
           <li>
             <form action="/filter" method="GET">
-              <label for="members">Members</label>
-              <input type="text" id="members" name="members" />
+              <label class="filter2" for="members">Members</label>
+              <input class="filter" type="text" id="members" name="members" />
               <li class="déroulant">
-                <label for="numberofmember">Number of Members</label>
-                <select id="numberofmember" name="numberofmember">
+                <label class="filter2" for="numberofmember">Number of Members</label>
+                <select class="filter" id="numberofmember" name="numberofmember">
                   <option value="">Number of Members</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -41,13 +41,13 @@
                   <option value="">All</option>
                 </select>
               </li>
-              <label for="creation-date">Creation Date:</label>
-              <input type="text" id="creation-date" name="creation-date" />
-              <label for="first-album">First Album:</label>
-              <input type="text" id="first-album" name="first-album" />
-              <label for="concert-date">Concert Dates:</label>
-              <input type="text" id="concert-date" name="concert-date" />
-              <button type="submit">Filter</button>
+              <label class="filter2" for="creation-date">Creation Date:</label>
+              <input class="filter" type="text" id="creation-date" name="creation-date" />
+              <label class="filter2" for="first-album">First Album:</label>
+              <input class="filter" type="text" id="first-album" name="first-album" />
+              <label class="filter2" for="concert-date">Concert Dates:</label>
+              <input class="filter" type="text" id="concert-date" name="concert-date" />
+              <button class="filter2" type="submit">Filter</button>
             </form>
             {{ if not .UserIsLoggedIn }}
             <button class="button" onclick="window.location.href='/register'">
