@@ -2,12 +2,25 @@
 * {
   margin: 0;
   padding: 0;
+  border: 0;
   box-sizing: border-box;
+  text-decoration: none;
+  list-style: none;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Global styles */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f0f0f0;
+  background-color: #333;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .container {
@@ -16,96 +29,181 @@ body {
   padding: 20px;
 }
 
+/* Header styles */
 header {
-  background-color: #333;
+  background-color: #222;
   color: #fff;
-  padding: 20px 0;
-  text-align: center;
+  padding: 20px;
 }
 
-nav {
-  margin-top: 20px;
-  text-align: center;
+header h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 
 nav ul {
   list-style: none;
+  display: flex;
 }
 
 nav ul li {
-  display: inline-block;
-  margin-right: 20px;
+  margin-right: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  max-width: auto; /* Définir une largeur maximale pour le formulaire */
 }
 
 nav ul li a {
-  text-decoration: none;
   color: #fff;
-  font-weight: bold;
-  transition: color 0.3s;
+  text-decoration: none;
 }
 
-nav ul li a:hover {
-  color: #ffd700;
+nav ul li form {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center; /* Aligner verticalement les éléments dans le formulaire */
+}
+
+nav ul li label,
+nav ul li input[type="number"],
+nav ul li input[type="text"],
+nav ul li select {
+  flex: 1;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 1);
+}
+
+nav ul li button {
+  width: 75px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: rgba(0, 0, 0, 0.3);
+  color: rgba(255, 255, 255, 1);
 }
 
 .search-bar {
-  text-align: center;
-  margin-top: 20px;
-}
-
-.search-bar input[type="text"] {
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-.search-bar button {
-  padding: 10px 20px;
-  background-color: #333;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.search-bar button:hover {
-  background-color: #444;
-}
-
-section {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-top: 20px;
-}
-
-section h2 {
-  width: 100%;
-  text-align: center;
+  align-items: center;
   margin-bottom: 20px;
 }
 
-.card {
-  background-color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin: 10px;
-  padding: 20px;
-  width: 300px;
-  text-align: center;
-}
-
-.card img {
-  max-width: 100%;
+.search-bar input[type="text"] {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.card h3 {
-  margin-top: 10px;
+.search-bar button {
+  padding: 10px;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
 }
 
-.card p {
-  margin-top: 10px;
+section {
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: stretch;
+  align-content: stretch;
+}
+
+section h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #fff;
+  width: 100%;
+}
+
+.artist {
+  margin-top: 20px;
+}
+
+.artist-card,
+.concert-card {
+  background-color: #666;
+  padding: 20px;
+  border-radius: 25px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  width: 450px;
+}
+
+.artist-card:last-child,
+.concert-card:last-child {
+  margin-right: 0;
+}
+
+.artist-card img,
+.concert-card img {
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  padding: 5px;
+  width: 100%;
+  border: none;
+}
+
+.artist-card h3,
+.concert-card h3 {
+  font-size: 18px;
+  margin-bottom: 5px;
+}
+
+.artist-card p,
+.concert-card p {
+  font-size: 14px;
+  color: #666;
+}
+
+footer {
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+}
+
+footer p {
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  nav ul li {
+    margin-right: 5px;
+  }
+
+  .artist-card,
+  .concert-card {
+    flex: 0 0 calc(100% - 20px);
+    margin-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .artist-card:last-child,
+  .concert-card:last-child {
+    margin-bottom: 0;
+  }
+}
+
+nav ul li select {
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+nav ul li select option {
+  padding: 5px;
 }

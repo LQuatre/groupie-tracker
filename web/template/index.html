@@ -17,3 +17,110 @@
     </div>
   </body>
 </html>
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" type="text/css" href="/static/assets/galery.css" />
+    <link rel="stylesheet" href="../assets/galery.css" />
+    <title>Groupie Tracker</title>
+  </head>
+  <body>
+    <header>
+      <h1>Groupie Tracker</h1>
+      <nav>
+        <ul>
+          <li>
+            <form action="/search" method="GET" class="search-bar">
+              <input
+                type="text"
+                id="searchInput"
+                name="query"
+                placeholder="Search..."
+              />
+              <label for="members">Members</label>
+              <input type="text" id="members" name="members" />
+              <li class="déroulant">
+                <label for="numberofmember">Number of Members</label>
+                <select id="numberofmember" name="numberofmember">
+                  <option value="">All</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                </select>
+              </li>
+              <label for="creation-date">Creation Date:</label>
+              <input type="text" id="creation-date" name="creation-date" />
+              <label for="first-album">First Album:</label>
+              <input type="text" id="first-album" name="first-album" />
+              <label for="concert-date">Concert Dates:</label>
+              <input type="text" id="concert-date" name="concert-date" />
+              <!-- <button type="submit">Filter</button> -->
+            </form>
+            {{ if not .UserIsLoggedIn }}
+            <button class="button" onclick="window.location.href='/register'">
+              Register
+            </button>
+            <button class="button" onclick="window.location.href='/login'">
+              Login
+            </button>
+            {{ else }}
+            <button class="button" onclick="window.location.href='/logout'">
+              Logout
+            </button>
+            <button class="button" onclick="window.location.href='/profile'">
+              Profile
+            </button>
+            {{ end }}
+          </li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <section id="artists" class="artist">
+        {{range .Bands}}
+        <a href="/artists/{{.ID}}">
+          <div class="artist-card">
+            <img src="{{.Image}}" alt="{{.Name}}" />
+            <h3>{{.Name}}</h3>
+          </div>
+        </a>
+        {{end}}
+      </section>
+    </main>
+ 
+    <footer>
+      <p>
+        &copy; Groupie Tracker. Toulouse Ynov Campus @2023-2024. Lucas Diot |
+        Guillaume Mardinli
+      </p>
+    </footer>
+ 
+    <script src="../static/assets/galery.js"></script>
+    <script>
+      document
+        .getElementById("searchInput")
+        .addEventListener("input", function () {
+          var query = this.value;
+          var xhr = new XMLHttpRequest();
+          xhr.open("GET", "/search?query=" + query, true);
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == XMLHttpRequest.DONE) {
+              if (xhr.status == 200) {
+                document.getElementById("artists").innerHTML = xhr.responseText;
+              } else {
+                console.error("Error:", xhr.status);
+              }
+            }
+          };
+          xhr.send();
+        });
+    </script>
+  </body>
+</html>

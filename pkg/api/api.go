@@ -99,6 +99,16 @@ func (a *API) GetBandFromSearch(search string) ([]Band, error) {
 	return bandsFound, nil
 }
 
+func (a *API) GetBandFromSearchWithBands(search string, bands []Band) ([]Band, error) {
+	var bandsFound []Band
+	for _, band := range bands {
+		if search != "" && strings.Contains(strings.ToLower(band.Name), strings.ToLower(search)) {
+			bandsFound = append(bandsFound, band)
+		}
+	}
+	return bandsFound, nil
+}
+
 func (a *API) FilterBands(filter Filter) ([]Band, error) {
 	var bands, err = a.GetAllBands()
 	if err != nil {
@@ -108,10 +118,15 @@ func (a *API) FilterBands(filter Filter) ([]Band, error) {
 	for _, band := range bands {
 		if filter.Members != "" {
 			members := strings.Split(filter.Members, ",")
+			allMembersPresent := true
 			for _, member := range members {
 				if !strings.Contains(strings.ToLower(strings.Join(band.Members, " ")), strings.ToLower(member)) {
-					continue
+					allMembersPresent = false
+					break
 				}
+			}
+			if !allMembersPresent {
+				continue
 			}
 		}
 		if filter.NumberOfMembers != 0 && len(band.Members) != filter.NumberOfMembers {
@@ -130,10 +145,11 @@ func (a *API) FilterBands(filter Filter) ([]Band, error) {
 			continue
 		}
 		if filter.ConcertDate != "" {
-			if !strings.Contains(filter.ConcertDate, band.ConcertDates) {
+			if !strings.Contains(band.ConcertDates, filter.ConcertDate) {
 				continue
 			}
 		}
+		fmt.Println(band.Name)
 		bandsFound = append(bandsFound, band)
 	}
 	return bandsFound, nil

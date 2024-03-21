@@ -1,0 +1,13 @@
+<!-- if u see this, is a debug page, u reloaded the page, i saw u -->
+<main>
+  <section id="artists">
+    {{range .Bands}}
+    <a href="/artists/{{.ID}}">
+      <div class="artist-card">
+        <img src="{{.Image}}" alt="{{.Name}}" />
+        <h3>{{.Name}}</h3>
+      </div>
+    </a>
+    {{end}}
+  </section>
+</main>

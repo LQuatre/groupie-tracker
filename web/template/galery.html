@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" type="text/css" href="/static/assets/galery.css" />
+    <link rel="stylesheet" href="../assets/galery.css" />
     <title>Groupie Tracker</title>
   </head>
   <body>
@@ -38,16 +39,15 @@
                   <option value="6">6</option>
                   <option value="7">7</option>
                   <option value="8">8</option>
-                  <option value="">All</option>
                 </select>
               </li>
-              <label class="filter2" for="creation-date">Creation Date:</label>
-              <input class="filter" type="text" id="creation-date" name="creation-date" />
-              <label class="filter2" for="first-album">First Album:</label>
-              <input class="filter" type="text" id="first-album" name="first-album" />
-              <label class="filter2" for="concert-date">Concert Dates:</label>
-              <input class="filter" type="text" id="concert-date" name="concert-date" />
-              <button class="filter2" type="submit">Filter</button>
+              <label for="creation-date">Creation Date:</label>
+              <input type="text" id="creation-date" name="creation-date" />
+              <label for="first-album">First Album:</label>
+              <input type="text" id="first-album" name="first-album" />
+              <label for="concert-date">Concert Dates:</label>
+              <input type="text" id="concert-date" name="concert-date" />
+              <!-- <button type="submit">Filter</button> -->
             </form>
             {{ if not .UserIsLoggedIn }}
             <button class="button" onclick="window.location.href='/register'">
@@ -69,8 +69,7 @@
       </nav>
     </header>
     <main>
-      <section id="artists">
-        <h2>Featured Artists</h2>
+      <section id="artists" class="artist">
         {{range .Bands}}
         <a href="/artists/{{.ID}}">
           <div class="artist-card">
@@ -84,10 +83,12 @@
 
     <footer>
       <p>
-        &copy; Groupie Tracker. All rights reserved. Lucas Diot | Guillaume
-        Mardinli
+        &copy; Groupie Tracker. Toulouse Ynov Campus @2023-2024. Lucas Diot |
+        Guillaume Mardinli
       </p>
     </footer>
+
+    <script src="../static/assets/galery.js"></script>
     <script>
       document
         .getElementById("searchInput")
