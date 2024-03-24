@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Groupie Tracker</title>
-    <link rel="stylesheet" type="text/css" href="/static/assets/login.css" />
-    <link rel="stylesheet" href="../assets/login.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/assets/css/login.css"
+    />
+    <link rel="stylesheet" href="../assets/css/login.css" />
   </head>
   <body>
-    <header>
-      <h1>Groupie Tracker</h1>
-    </header>
     <main>
       <section id="login">
         <h2>Login</h2>
@@ -21,7 +22,13 @@
           <input type="password" id="password" name="password" />
           <button type="submit">Login</button>
         </form>
+        {{ if .ErrUserNotFound }}
+        <p class="error">{{ .ErrUserNotFound }}</p>
+        {{ end }}
         <p>Don't have an account? <a href="/register">Register</a></p>
+        <div class="back">
+          <button onclick="window.location.href='/artists'">Back</button>
+        </div>
       </section>
     </main>
     <footer></footer>
