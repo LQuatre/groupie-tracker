@@ -3,8 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" type="text/css" href="/static/assets/galery.css" />
-    <link rel="stylesheet" href="../assets/galery.css" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/static/assets/css/galery.css"
+    />
+    <link rel="stylesheet" href="../assets/css/galery.css" />
     <title>Groupie Tracker</title>
   </head>
   <body>
@@ -20,7 +24,7 @@
                 name="query"
                 placeholder="Search..."
               />
-              <button type="submit">Search</button>
+              <button type="submit" name="submit">Search</button>
             </form>
           </li>
           <li>
@@ -28,8 +32,14 @@
               <label class="filter2" for="members">Members</label>
               <input class="filter" type="text" id="members" name="members" />
               <li class="déroulant">
-                <label class="filter2" for="numberofmember">Number of Members</label>
-                <select class="filter" id="numberofmember" name="numberofmember">
+                <label class="filter2" for="numberofmember"
+                  >Number of Members</label
+                >
+                <select
+                  class="filter"
+                  id="numberofmember"
+                  name="numberofmember"
+                >
                   <option value="">Number of Members</option>
                   <option value="1">1</option>
                   <option value="2">2</option>
@@ -88,7 +98,7 @@
       </p>
     </footer>
 
-    <script src="../static/assets/galery.js"></script>
+    <script src="../static/assets/js/galery.js"></script>
     <script>
       document
         .getElementById("searchInput")

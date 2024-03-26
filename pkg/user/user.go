@@ -33,34 +33,90 @@ func SetMySQL() *sql.DB {
 	return myDataBase.Db
 }
 
-func Register(username, password, mail string) (UserStruct, error) {
+func ValidateEmail(email string) bool {
+	if len(email) < 3 {
+		return false
+	}
+	if len(email) > 254 {
+		return false
+	}
+	at := false
+	dot := false
+	for i, c := range email {
+		if c == '@' {
+			if at {
+				return false
+			}
+			at = true
+			if i == 0 {
+				return false
+			}
+			if i == len(email)-1 {
+				return false
+			}
+		}
+		if c == '.' {
+			if !at {
+				return false
+			}
+			if i == 0 {
+				return false
+			}
+			if i == len(email)-1 {
+				return false
+			}
+			dot = true
+		}
+	}
+	return dot
+}
+
+func Register(username, password, mail string) (UserStruct, string) {
+	if username == "" || password == "" || mail == "" {
+		return UserStruct{}, "The username, password, and mail fields are required."
+	}
+	if len(password) < 8 {
+		return UserStruct{}, "password must be at least 8 characters long"
+	}
+	if len(username) < 4 {
+		return UserStruct{}, "username must be at least 4 characters long"
+	}
+	if !ValidateEmail(mail) {
+		return UserStruct{}, "The email address is not valid."
+	}
+
 	stmt, err := myDataBase.Db.Prepare("INSERT INTO user (username, password, mail) VALUES (?, ?, ?)")
 	if err != nil {
-		return UserStruct{}, fmt.Errorf("failed to prepare the SQL statement: %w", err)
+		return UserStruct{}, ""
 	}
 
 	_, err = stmt.Exec(username, password, mail)
 	if err != nil {
-		return UserStruct{}, fmt.Errorf("failed to execute the SQL statement: %w", err)
+		return UserStruct{}, ""
 	}
 
-	fmt.Println("User registered successfully.")
-	return UserStruct{Username: username, Password: password, Mail: mail}, nil
+	// fmt.Println("User registered successfully.")
+	return UserStruct{Username: username, Password: password, Mail: mail}, ""
 }
 
-func Login(w http.ResponseWriter, username, password string) (UserStruct, error) {
+func Login(w http.ResponseWriter, username, password string) (UserStruct, string) {
 	stmt, err := myDataBase.Db.Prepare("SELECT username, password, mail, starred, grade FROM user WHERE username = ? AND password = ?")
 	if err != nil {
-		return UserStruct{}, fmt.Errorf("failed to prepare the SQL statement: %w", err)
+		if err == sql.ErrNoRows {
+			return UserStruct{}, "The user does not exist or the password is incorrect."
+		}
+		return UserStruct{}, ""
 	}
 
 	var user UserStruct
 	err = stmt.QueryRow(username, password).Scan(&user.Username, &user.Password, &user.Mail, &user.Starred, &user.Grade)
 	if err != nil {
-		return UserStruct{}, fmt.Errorf("failed to execute the SQL statement: %w", err)
+		if err == sql.ErrNoRows {
+			return UserStruct{}, "The user does not exist or the password is incorrect."
+		}
+		return UserStruct{}, ""
 	}
-
-	fmt.Println("User logged in successfully.")
+	// fmt.Println("User logged in successfully.")
 
 	cookie := http.Cookie{
 		Name:  "username",
@@ -68,8 +124,8 @@ func Login(w http.ResponseWriter, username, password string) (UserStruct, error)
 	}
 
 	http.SetCookie(w, &cookie)
-	fmt.Println("User cookie set successfully.")
-	return user, nil
+	// fmt.Println("User cookie set successfully.")
+	return user, ""
 }
 
 func GetUser(username string) (UserStruct, error) {

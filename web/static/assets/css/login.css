@@ -13,17 +13,33 @@ main {
   height: 100%;
 }
 
-header,
+.back {
+  text-decoration: none;
+  color: #fff;
+  font-size: 15px;
+  text-align: center;
+  width: 100px;
+}
+
+.back button {
+  background-color: #bbb;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+p .error {
+  margin: 0;
+  color: red;
+  margin-bottom: 20px;
+}
+
 #login button,
 #register button {
   background-color: #333;
   color: white;
-}
-
-header {
-  padding: 10px;
-  text-align: center;
-  width: 100%;
 }
 
 #login,

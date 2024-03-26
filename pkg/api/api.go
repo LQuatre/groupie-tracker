@@ -149,7 +149,7 @@ func (a *API) FilterBands(filter Filter) ([]Band, error) {
 				continue
 			}
 		}
-		fmt.Println(band.Name)
+		// fmt.Println(band.Name)
 		bandsFound = append(bandsFound, band)
 	}
 	return bandsFound, nil

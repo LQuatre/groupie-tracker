@@ -1,15 +1,12 @@
 package routes
 
 import (
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"groupietracker.com/m/pkg/api"
 	"groupietracker.com/m/pkg/user"
@@ -37,25 +34,6 @@ func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	fmt.Println("Server started at http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		fmt.Printf("Erreur lors du démarrage du serveur: %v\n", err)
-	}
-}
-
-// Fonction pour gérer l'index et les requêtes vers /index.html
-func handleIndex(indexPath string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
-			tmpl, err := template.ParseFiles(indexPath)
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-
-			err = tmpl.Execute(w, nil)
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-		}
 	}
 }
 
@@ -96,81 +74,6 @@ func SetAPIRoutes(apiUrl string) error {
 	return nil
 }
 
-func handleAPIRequest(w http.ResponseWriter, apiUrl string) {
-	w.Header().Set("Content-Type", "application/json")
-	resp, err := http.Get(apiUrl)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-	defer resp.Body.Close()
-
-	_, err = io.Copy(w, resp.Body)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-}
-
-func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl string) {
-	parts := strings.Split(r.URL.Path, "/")
-	if len(parts) < 3 {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	endpoint := parts[2]
-	url := apiUrl
-
-	if len(parts) == 3 {
-		endpoints := map[string]string{
-			"":          url,
-			"artists":   url + "/artists",
-			"locations": url + "/locations",
-			"dates":     url + "/dates",
-			"relation":  url + "/relation",
-		}
-
-		url, ok := endpoints[endpoint]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		handleAPIRequest(w, url)
-	} else if len(parts) == 4 {
-		endpoints := map[string]string{
-			"artists":   url + "/artists",
-			"locations": url + "/locations",
-			"dates":     url + "/dates",
-			"relation":  url + "/relation",
-		}
-
-		url, ok := endpoints[endpoint]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		id := parts[3]
-
-		resp, err := http.Get(url + "/" + id)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Content-Type", "application/json")
-
-		_, err = io.Copy(w, resp.Body)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-	}
-}
-
 var redirectNeeded bool = false
 var redirected bool = false
 
@@ -203,7 +106,7 @@ func SetSearchRoutes(myapi *api.API) error {
         submit := r.URL.Query().Has("submit")
 
         if submit {
-            fmt.Println("Redirection vers", cleanURL)
+            // fmt.Println("Redirection vers", cleanURL)
             redirectNeeded = true
             http.Redirect(w, r, cleanURL, http.StatusFound)
             return
@@ -390,11 +293,12 @@ func SetArtistsRoutes(myapi *api.API) error {
 }
 
 type UserStruct struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Mail     string `json:"mail"`
-	Starred  string `json:"starred"`
-	Grade    string `json:"grade"`
+	Username 		string `json:"username"`
+	Password 		string `json:"password"`
+	Mail     		string `json:"mail"`
+	Starred  		string `json:"starred"`
+	Grade    		string `json:"grade"`
+	ErrUserNotFound string `json:"errUserNotFound"`
 }
 
 func SetLoginRoutes(myapi *api.API) error {
@@ -412,12 +316,9 @@ func SetLoginRoutes(myapi *api.API) error {
 			}
 			username := r.FormValue("username")
 			password := r.FormValue("password")
-			user.SetMySQL()
-			thisuser, err := user.Login(w, username, password)
-			fmt.Println(thisuser)
-			if err != nil {
-				handleError(w, err)
-				return
+			thisuser, errTxt := user.Login(w, username, password)
+			if errTxt != "" {
+				renderTemplate(w, "web/template/login.html", UserStruct{ErrUserNotFound: errTxt})
 			}
 			if thisuser != (user.UserStruct{}) {
 				// Ajouter un cookie indiquant la connexion réussie
@@ -432,7 +333,7 @@ func SetLoginRoutes(myapi *api.API) error {
 					Path:  "/",
 				})
 				http.Redirect(w, r, "/artists", http.StatusFound)
-				fmt.Println("User logged in successfully.")
+				// fmt.Println("User logged in successfully.")
 				return
 			}
 			http.Redirect(w, r, "/login", http.StatusFound)
@@ -459,14 +360,16 @@ func SetRegisterRoutes(myapi *api.API) error {
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 			mail := r.FormValue("email")
-			user.SetMySQL()
-			thisuser, err := user.Register(username, password, mail)
-			fmt.Println(thisuser)
-			if err != nil {
-				handleError(w, err)
+			thisuser, errTxt := user.Register(username, password, mail)
+			if errTxt != "" {
+				renderTemplate(w, "web/template/register.html", UserStruct{ErrUserNotFound: errTxt})
 				return
 			}
-			http.Redirect(w, r, "/login", http.StatusFound)
+			if thisuser != (user.UserStruct{}) {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
+			}
+			http.Redirect(w, r, "/register", http.StatusFound)
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
@@ -531,94 +434,3 @@ func SetProfileRoutes(myapi *api.API) error {
 	})
 	return nil
 }	
-
-func handleError(w http.ResponseWriter, err error) {
-	fmt.Printf("Error: %v\n", err)
-	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-}
-
-func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
-	t, err := template.ParseFiles(tmpl)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-
-	err = t.Execute(w, data)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-}
-
-func onlySendData(w http.ResponseWriter, data DataToWeb) {
-    // Convertir les données en JSON
-    jsonData, err := json.Marshal(data)
-    if err != nil {
-        handleError(w, err)
-        return
-    }
-
-    // Définir le type de contenu de la réponse comme JSON
-    w.Header().Set("Content-Type", "application/json")
-
-    // Envoyer les données JSON en réponse
-    _, err = w.Write(jsonData)
-    if err != nil {
-        handleError(w, err)
-    }
-}
-
-
-func GeocodeAddress(placeName string) (float64, float64) {
-	apiKey := "AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o"
-
-	// Construire l'URL de l'API de géocodage de Google
-	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s", placeName, apiKey)
-
-	// Effectuer la requête HTTP GET
-	resp, err := http.Get(url)
-	if err != nil {
-		fmt.Println("Erreur lors de la requête HTTP:", err)
-		return 0.0, 0.0
-	}
-	defer resp.Body.Close()
-
-	// Vérifier le code de statut HTTP
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("La requête HTTP a retourné un code d'état non-OK:", resp.StatusCode)
-		return 0.0, 0.0
-	}
-
-	// Décodez la réponse JSON
-	var response map[string]interface{}
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-		fmt.Println("Erreur lors du décodage de la réponse JSON:", err)
-		return 0.0, 0.0
-	}
-
-	// Vérifiez le statut de la réponse
-	if status, ok := response["status"].(string); !ok || status != "OK" {
-		fmt.Println("La réponse de l'API n'est pas OK:", status)
-		return 0.0, 0.0
-	}
-
-	lat := 0.0
-	lng := 0.0
-
-	// fmt.Println(response)
-
-	// Récupérer les coordonnées géographiques (latitude et longitude)
-	results := response["results"].([]interface{})
-	if len(results) > 0 {
-		geometry := results[0].(map[string]interface{})["geometry"].(map[string]interface{})
-		location := geometry["location"].(map[string]interface{})
-		lat = location["lat"].(float64)
-		lng = location["lng"].(float64)
-		fmt.Printf("Coordonnées de %s: Latitude %f, Longitude %f\n", placeName, lat, lng)
-	} else {
-		fmt.Println("Aucun résultat trouvé pour", placeName)
-	}
-
-	return lat, lng
-}
