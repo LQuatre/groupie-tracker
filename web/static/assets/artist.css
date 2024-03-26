@@ -3,20 +3,21 @@
 /* Page styles */
 body {
   font-family: Arial, sans-serif;
-  background-color: #f2f2f2;
+  background-color: #333;
 }
 
 h1 {
   text-align: center;
   margin-top: 20px;
+  color: #fff;
 }
 
 .artist-card {
   max-width: 600px;
   margin: 0 auto;
-  background-color: #fff;
+  background-color: #666;
   padding: 20px;
-  border-radius: 5px;
+  border-radius: 25px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   text-align: center;
 }
@@ -24,25 +25,24 @@ h1 {
 h2 {
   margin-bottom: 10px;
   text-align: center;
+  color: #fff;
 }
 
 img {
   max-width: 100%;
   height: auto;
   margin-bottom: 10px;
+  border-radius: 25px;
 }
 
 p {
   margin-bottom: 5px;
   text-align: center;
+  color: #fff;
 }
 
-/*
- * Always set the map height explicitly to define the size of the div element
- * that contains the map.
- */
 #map {
   height: 590px;
   width: 590px;
-  border-radius: 5%;
+  border-radius: 25px;
 }
