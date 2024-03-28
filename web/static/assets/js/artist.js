@@ -63,4 +63,18 @@ function showMap() {
   initMap(locations);
 }
 
+// Exemple : récupération de la donnée (date) depuis la div
+const dataDiv = document.querySelector(".data-container");
+const data = dataDiv.getAttribute("datasearch");
+
+console.log("Data:", data);
+// Exemple : recherche Google avec la donnée
+const artistQuery = data + " artist"; // Ajoute "artist" à la recherche
+const googleUrl = `https://www.google.com/search?q=${encodeURIComponent(
+  artistQuery
+)}`;
+
+// Exemple : changer l'image de fond en fonction de la recherche
+document.body.style.backgroundImage = `url('${googleUrl}')`;
+
 showMap();
