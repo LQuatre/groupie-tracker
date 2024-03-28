@@ -6,7 +6,12 @@ import (
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
+	"groupietracker.com/m/pkg/passwordManager"
 )
+
+const saltSize = 16
+
+var salt = passwordManager.GenerateRandomSalt(16)
 
 type UserStruct struct {
 	Username string `json:"username"`
@@ -85,38 +90,37 @@ func Register(username, password, mail string) (UserStruct, string) {
 		return UserStruct{}, "The email address is not valid."
 	}
 
+	var hashedPassword = passwordManager.HashPassword(password, salt)
+
 	stmt, err := myDataBase.Db.Prepare("INSERT INTO user (username, password, mail) VALUES (?, ?, ?)")
 	if err != nil {
 		return UserStruct{}, ""
 	}
 
-	_, err = stmt.Exec(username, password, mail)
+	_, err = stmt.Exec(username, hashedPassword, mail)
 	if err != nil {
 		return UserStruct{}, ""
 	}
 
 	// fmt.Println("User registered successfully.")
-	return UserStruct{Username: username, Password: password, Mail: mail}, ""
+	return UserStruct{Username: username, Password: hashedPassword, Mail: mail}, ""
 }
 
 func Login(w http.ResponseWriter, username, password string) (UserStruct, string) {
-	stmt, err := myDataBase.Db.Prepare("SELECT username, password, mail, starred, grade FROM user WHERE username = ? AND password = ?")
+	// get the user from the database
+	if username == "" || password == "" {
+		return UserStruct{}, "The username and password fields are required."
+	}
+	user, err := GetUser(username)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return UserStruct{}, "The user does not exist or the password is incorrect."
-		}
-		return UserStruct{}, ""
+		return UserStruct{}, "The user does not exist or the password is incorrect."
 	}
 
-	var user UserStruct
-	err = stmt.QueryRow(username, password).Scan(&user.Username, &user.Password, &user.Mail, &user.Starred, &user.Grade)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return UserStruct{}, "The user does not exist or the password is incorrect."
-		}
-		return UserStruct{}, ""
+	var PasswordsMatch = passwordManager.DoPasswordsMatch(user.Password, password, salt)
+
+	if !PasswordsMatch {
+		return UserStruct{}, "The user does not exist or the password is incorrect."
 	}
-	// fmt.Println("User logged in successfully.")
 
 	cookie := http.Cookie{
 		Name:  "username",
@@ -124,7 +128,6 @@ func Login(w http.ResponseWriter, username, password string) (UserStruct, string
 	}
 
 	http.SetCookie(w, &cookie)
-	// fmt.Println("User cookie set successfully.")
 	return user, ""
 }
 
