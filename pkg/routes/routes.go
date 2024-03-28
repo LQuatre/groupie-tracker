@@ -52,6 +52,10 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 		{func(s string) error { return SetRegisterRoutes(myApi) }},
 		{func(s string) error { return SetLogoutRoutes(myApi) }},
 		{func(s string) error { return SetProfileRoutes(myApi) }},
+<<<<<<< HEAD
+=======
+		{func(s string) error { return SetupAdminRoutes(myApi) }},
+>>>>>>> 672b5fd4a876794661f18ab5f045bb49c0faf7eb
 		{func(s string) error { return SetGetArtistNamesRoute(myApi) }},
 	}
 
@@ -63,8 +67,27 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	}
 }
 
+<<<<<<< HEAD
 func SetAPIRoutes(apiUrl string) error {
 	if apiUrl == "" {
+=======
+func Setup404Route() error {
+	http.HandleFunc("/404", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, "web/template/404.html", nil)
+	})
+	return nil
+}
+
+func SetupErrorRoute() error {
+	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, "web/template/error.html", nil)
+	})
+	return nil
+}
+
+func SetAPIRoutes(myapi *api.API) error {
+	if myapi == nil {
+>>>>>>> 672b5fd4a876794661f18ab5f045bb49c0faf7eb
 		return fmt.Errorf("API URL is required")
 	}
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
