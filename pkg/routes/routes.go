@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -15,11 +16,10 @@ import (
 var staticDir = os.Getenv("STATIC_DIR")
 
 type DataToWeb struct {
-	Bands []api.Band
+	Bands          []api.Band
 	UserIsLoggedIn bool
-	Username string
+	Username       string
 }
-
 
 func Setup(indexPath string, apiUrl string, myApi *api.API) {
 	// Configuration du serveur de fichiers statiques
@@ -49,6 +49,7 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 		{func(s string) error { return SetRegisterRoutes(myApi) }},
 		{func(s string) error { return SetLogoutRoutes(myApi) }},
 		{func(s string) error { return SetProfileRoutes(myApi) }},
+		{func(s string) error { return SetGetArtistNamesRoute(myApi) }},
 	}
 
 	for _, r := range routes {
@@ -58,7 +59,6 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 		}
 	}
 }
-
 
 func SetAPIRoutes(apiUrl string) error {
 	if apiUrl == "" {
@@ -78,91 +78,91 @@ var redirectNeeded bool = false
 var redirected bool = false
 
 func SetSearchRoutes(myapi *api.API) error {
-    if myapi == nil {
-        return fmt.Errorf("API is required")
-    }
+	if myapi == nil {
+		return fmt.Errorf("API is required")
+	}
 
-    http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
-        if r.Method != "GET" {
-            http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-            return
-        }
+	http.HandleFunc("/search", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != "GET" {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+			return
+		}
 
-        // Filtrer les paramètres de requête vides et le paramètre submit
-        filteredParams := make(url.Values)
-        for key, values := range r.URL.Query() {
-            if key != "submit" && len(values) > 0 {
-                filteredParams[key] = values
-            }
-        }
+		// Filtrer les paramètres de requête vides et le paramètre submit
+		filteredParams := make(url.Values)
+		for key, values := range r.URL.Query() {
+			if key != "submit" && len(values) > 0 {
+				filteredParams[key] = values
+			}
+		}
 
-        // Générer l'URL sans les paramètres de requête vides et le paramètre submit
-        cleanURL := "/search"
-        if len(filteredParams) > 0 {
-            cleanURL += "?" + filteredParams.Encode()
-        }
+		// Générer l'URL sans les paramètres de requête vides et le paramètre submit
+		cleanURL := "/search"
+		if len(filteredParams) > 0 {
+			cleanURL += "?" + filteredParams.Encode()
+		}
 
-        query := r.URL.Query().Get("query")
-        submit := r.URL.Query().Has("submit")
+		query := r.URL.Query().Get("query")
+		submit := r.URL.Query().Has("submit")
 
-        if submit {
-            // fmt.Println("Redirection vers", cleanURL)
-            redirectNeeded = true
-            http.Redirect(w, r, cleanURL, http.StatusFound)
-            return
-        } else {
-            redirected = false
-        }
+		if submit {
+			// fmt.Println("Redirection vers", cleanURL)
+			redirectNeeded = true
+			http.Redirect(w, r, cleanURL, http.StatusFound)
+			return
+		} else {
+			redirected = false
+		}
 
-        dataToWeb := DataToWeb{}
+		dataToWeb := DataToWeb{}
 
 		hasFilter := len(filteredParams) > 0
 
-        if hasFilter {
-            // Extrait les valeurs des filtres
-            members := r.FormValue("members")
-            numberOfMembers := r.FormValue("numberofmember")
-            location := r.FormValue("location")
-            createDate := r.FormValue("creation-date")
-            firstAlbum := r.FormValue("first-album")
-            concertDate := r.FormValue("concert-date")
+		if hasFilter {
+			// Extrait les valeurs des filtres
+			members := r.FormValue("members")
+			numberOfMembers := r.FormValue("numberofmember")
+			location := r.FormValue("location")
+			createDate := r.FormValue("creation-date")
+			firstAlbum := r.FormValue("first-album")
+			concertDate := r.FormValue("concert-date")
 
-            // Convertit les valeurs nécessaires en entiers
-            var err error
-            var numberOfMembersInt int
-            if numberOfMembers != "" {
-                numberOfMembersInt, err = strconv.Atoi(numberOfMembers)
-                if err != nil {
-                    handleError(w, err)
-                    return
-                }
-            }
+			// Convertit les valeurs nécessaires en entiers
+			var err error
+			var numberOfMembersInt int
+			if numberOfMembers != "" {
+				numberOfMembersInt, err = strconv.Atoi(numberOfMembers)
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+			}
 
-            var createDateInt int
-            if createDate != "" {
-                createDateInt, err = strconv.Atoi(createDate)
-                if err != nil {
-                    handleError(w, err)
-                    return
-                }
-            }
+			var createDateInt int
+			if createDate != "" {
+				createDateInt, err = strconv.Atoi(createDate)
+				if err != nil {
+					handleError(w, err)
+					return
+				}
+			}
 
-            // Filtre les groupes en fonction des paramètres
-            filteredBands, err := myapi.FilterBands(api.Filter{
-                Members:         members,
-                NumberOfMembers: numberOfMembersInt,
-                Location:        location,
-                CreationDate:    createDateInt,
-                FirstAlbum:      firstAlbum,
-                ConcertDate:     concertDate,
-            })
-            if err != nil {
-                handleError(w, err)
-                return
-            }
+			// Filtre les groupes en fonction des paramètres
+			filteredBands, err := myapi.FilterBands(api.Filter{
+				Members:         members,
+				NumberOfMembers: numberOfMembersInt,
+				Location:        location,
+				CreationDate:    createDateInt,
+				FirstAlbum:      firstAlbum,
+				ConcertDate:     concertDate,
+			})
+			if err != nil {
+				handleError(w, err)
+				return
+			}
 
-            dataToWeb.Bands = filteredBands
-        }
+			dataToWeb.Bands = filteredBands
+		}
 
 		strToInt := func(s string) int {
 			i, err := strconv.Atoi(s)
@@ -203,31 +203,29 @@ func SetSearchRoutes(myapi *api.API) error {
 			dataToWeb.Bands = bands
 		}
 
+		// Gestion de l'authentification
+		if _, err := r.Cookie("loggedIn"); err == nil {
+			dataToWeb.UserIsLoggedIn = true
+			if cookie, err := r.Cookie("username"); err == nil {
+				dataToWeb.Username = cookie.Value
+			}
+		}
 
-        // Gestion de l'authentification
-        if _, err := r.Cookie("loggedIn"); err == nil {
-            dataToWeb.UserIsLoggedIn = true
-            if cookie, err := r.Cookie("username"); err == nil {
-                dataToWeb.Username = cookie.Value
-            }
-        }
+		// Affiche la page appropriée en fonction de la nécessité de redirection
+		if redirectNeeded || redirected {
+			// fmt.Println("Afficahge de la page de redirection")
+			redirectNeeded = false
+			redirected = true
+			renderTemplate(w, "web/template/galery.html", dataToWeb)
+			return
+		}
 
-        // Affiche la page appropriée en fonction de la nécessité de redirection
-        if (redirectNeeded || redirected) {
-            // fmt.Println("Afficahge de la page de redirection")
-            redirectNeeded = false
-            redirected = true
-            renderTemplate(w, "web/template/galery.html", dataToWeb)
-            return
-        }
+		// fmt.Println("Affichage des recherche")
+		renderTemplate(w, "web/template/search.html", dataToWeb)
+	})
 
-        // fmt.Println("Affichage des recherche")
-        renderTemplate(w, "web/template/search.html", dataToWeb)
-    })
-
-    return nil
+	return nil
 }
-
 
 func SetArtistsRoutes(myapi *api.API) error {
 	if myapi == nil {
@@ -239,7 +237,7 @@ func SetArtistsRoutes(myapi *api.API) error {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		
+
 		if parts[2] == "" {
 			bands, err := myapi.GetAllBands()
 			if err != nil {
@@ -293,11 +291,11 @@ func SetArtistsRoutes(myapi *api.API) error {
 }
 
 type UserStruct struct {
-	Username 		string `json:"username"`
-	Password 		string `json:"password"`
-	Mail     		string `json:"mail"`
-	Starred  		string `json:"starred"`
-	Grade    		string `json:"grade"`
+	Username        string `json:"username"`
+	Password        string `json:"password"`
+	Mail            string `json:"mail"`
+	Starred         string `json:"starred"`
+	Grade           string `json:"grade"`
 	ErrUserNotFound string `json:"errUserNotFound"`
 }
 
@@ -433,4 +431,37 @@ func SetProfileRoutes(myapi *api.API) error {
 		}
 	})
 	return nil
-}	
+}
+
+func SetGetArtistNamesRoute(myApi *api.API) error {
+	http.HandleFunc("/get-artist-names", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "GET" {
+			// Récupérer les noms d'artistes depuis votre API Go
+			bands, err := myApi.GetAllBands()
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			// Extraire les noms des artistes
+			var artistNames []string
+			for _, band := range bands {
+				artistNames = append(artistNames, band.Name)
+			}
+
+			// Convertir les noms d'artistes en JSON
+			jsonResponse, err := json.Marshal(artistNames)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+
+			// Renvoyer la réponse JSON
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(jsonResponse)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	return nil
+}
