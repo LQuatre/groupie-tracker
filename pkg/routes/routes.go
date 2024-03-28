@@ -42,8 +42,8 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	routes := []struct {
 		route func(string) error
 	}{
-		{func(s string) error { return Setup404Route() }},
-		{func(s string) error { return SetupErrorRoute() }},
+		//	{func(s string) error { return Setup404Route() }},
+		//	{func(s string) error { return SetupErrorRoute() }},
 
 		{func(s string) error { return SetAPIRoutes(apiUrl) }},
 		{func(s string) error { return SetSearchRoutes(myApi) }},
@@ -52,11 +52,7 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 		{func(s string) error { return SetRegisterRoutes(myApi) }},
 		{func(s string) error { return SetLogoutRoutes(myApi) }},
 		{func(s string) error { return SetProfileRoutes(myApi) }},
-<<<<<<< HEAD
-		{func(s string) error { return SetupAdminRoutes(myApi) }},
-=======
 		{func(s string) error { return SetGetArtistNamesRoute(myApi) }},
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
 	}
 
 	for _, r := range routes {
@@ -67,23 +63,6 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	}
 }
 
-<<<<<<< HEAD
-func Setup404Route() error {
-	http.HandleFunc("/404", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, "web/template/404.html", nil)
-	})
-	return nil
-}
-
-func SetupErrorRoute() error {
-	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
-		renderTemplate(w, "web/template/error.html", nil)
-	})
-	return nil
-}
-
-=======
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
 func SetAPIRoutes(apiUrl string) error {
 	if apiUrl == "" {
 		return fmt.Errorf("API URL is required")
@@ -455,47 +434,6 @@ func SetProfileRoutes(myapi *api.API) error {
 		}
 	})
 	return nil
-<<<<<<< HEAD
-}	
-
-func SetupAdminRoutes(myapi *api.API) error {
-	if myapi == nil {
-		return fmt.Errorf("API is required")
-	}
-	http.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			// Vérifier si l'utilisateur est connecté
-			_, err := r.Cookie("loggedIn")
-			if err != nil {
-				http.Redirect(w, r, "/login", http.StatusFound)
-				return
-			}
-
-			// Récupérer le nom d'utilisateur à partir du cookie
-			cookie, err := r.Cookie("username")
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-			username := cookie.Value
-
-			// Récupérer les informations de l'utilisateur à partir de l'API
-			user, err := user.GetUser(username)
-			if err != nil {
-				handleError(w, err)
-				return
-			}
-
-			// Vérifier si l'utilisateur est un administrateur
-			if user.Grade != "admin" {
-				// Rediriger l'utilisateur vers la page 404
-				http.Redirect(w, r, "/404", http.StatusFound)
-				return
-			}
-
-			// Afficher la page d'administration
-			renderTemplate(w, "web/template/admin.html", nil)
-=======
 }
 
 func SetGetArtistNamesRoute(myApi *api.API) error {
@@ -524,14 +462,9 @@ func SetGetArtistNamesRoute(myApi *api.API) error {
 			// Renvoyer la réponse JSON
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jsonResponse)
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	return nil
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
