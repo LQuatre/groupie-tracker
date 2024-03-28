@@ -1,28 +1,106 @@
-body {
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  height: 100vh;
+body{
+  margin:0;
+  padding:0;
+  height:100vh;
+  background-image: linear-gradient(to top, #2e1753, #1f1746, #131537, #0d1028, #050819);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
 }
 
-h1 {
-  color: #333;
+.lilita-one-regular {
+  font-family: "Lilita One", sans-serif;
+  font-weight: 400;
+  font-style: normal;
 }
 
-p {
-  color: #666;
+.oleo-script-regular {
+  font-family: "Oleo Script", system-ui;
+  font-weight: 400;
+  font-style: normal;
 }
 
-a {
-  color: #007bff;
-  text-decoration: none;
+.text{
+  position:absolute;
+  top:10%;
+  color:#fff;
+  text-align:center;
+  font-size: 400%;
+  font-family: 'Lilita One', sans-serif;
 }
 
-a:hover {
-  color: #0056b3;
+.akhy {
+  position: absolute;
+  color: #fff;
+  text-align: center;
+  font-size: 400%;
+  font-family: "Oleo Script", system-ui;
+
+}
+h1{
+  font-size:50px;
+}
+
+.astronaut img{
+  width:150px;
+  position:absolute;
+  top:60%;
+  animation:astronautFly 6s infinite linear;
+}
+@keyframes astronautFly{
+  0%{
+    left:-100px;
+  }
+  25%{
+    top:50%;
+    transform:rotate(30deg);
+  }
+  50%{
+    transform:rotate(45deg);
+    top:55%;
+  }
+  75%{
+    top:60%;
+    transform:rotate(30deg);
+  }
+  100%{
+    left:110%;
+    transform:rotate(45deg);
+  }
+}
+
+h2{
+  position: absolute;
+  top: 80%;
+  left: 43%;
+  color: white;
+  text-align: center;
+  font-size: 200%;
+  font-family: 'Lilita One', sans-serif;
+  opacity: 80%;
+  -webkit-animation-duration: 1.5s;
+  animation-duration: 1.5s;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+
+}
+
+h2:hover{
+  cursor: pointer;
+  animation-name: bounce;
+  -moz-animation-name: bounce;
+}
+
+@keyframes bounce {
+	0% {
+		-webkit-transform: translateY(0);
+		-ms-transform:     translateY(0);
+		transform:         translateY(0)
+	}
+	70% {
+		-webkit-transform: translateY(-15px);
+		-ms-transform:     translateY(-15px);
+		transform:         translateY(-15px)
+	}
 }

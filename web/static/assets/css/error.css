@@ -1,0 +1,57 @@
+html, body {
+    position: relative;
+    background: #2e1753 ;
+    min-height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+  
+  .Container {
+    text-align: center;
+    position: relative;
+  }
+  
+  .MainTitle {
+    display: block;
+    font-size: 2rem;
+    font-weight: lighter;
+    text-align: center;
+    font-family: "Lilita One", sans-serif;
+  }
+  
+  .MainDescription {  
+    font-size: 1.2rem;
+    font-weight: lighter;
+    font-family: 'Lilita One', sans-serif;
+  }
+  
+  
+  
+  .MainGraphic {
+    position: relative;
+    font-family: "Lilita One", sans-serif;
+  }
+  
+  .Cog {
+    width: 10rem;
+    height: 10rem;
+    transition: easeInOutQuint();
+    animation: CogAnimation 5s infinite;
+  }
+  
+  
+  .lilita-one-regular {
+      font-family: "Lilita One", sans-serif;
+      font-weight: 400;
+      font-style: normal;
+    }
+  
+  @keyframes CogAnimation {
+      0%   {transform: rotate(0deg);}
+      100% {transform: rotate(360deg);}
+  }
+  
+  
