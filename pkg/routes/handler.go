@@ -23,6 +23,18 @@ func handleIndex(indexPath string) http.HandlerFunc {
 				handleError(w, err)
 				return
 			}
+		} else {
+			println(r.URL.Path)
+			tmpl, err := template.ParseFiles("web/template/404.html")
+			if err != nil {
+				handleError(w, err)
+			}
+
+			err = tmpl.Execute(w, nil)
+			if err != nil {
+				handleError(w, err)
+			}
+			return
 		}
 	}
 }
