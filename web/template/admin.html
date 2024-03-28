@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Page</title>
+    <link rel="stylesheet" href="web/static/assets/css/admin.css" />
+    <link rel="stylesheet" href="../static/assets/css/admin.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Administration Page</h1>
+    </header>
+
+    <main>
+      <div class="range-container">
+        <h2>Users</h2>
+        <ul>
+          <li>
+            <span>Username</span>
+            <span>Email</span>
+            <span>Grade</span>
+          </li>
+          {{ range .Users }}
+          <li>
+            <span>{{ .Username }}</span>
+            <span>{{ .Mail }}</span>
+            <span>{{ .Grade }}</span>
+          </li>
+          {{ end }}
+        </ul>
+      </div>
+      <div class="range-container">
+        <h2>Artists</h2>
+        <ul>
+          <li>
+            <span>Name</span>
+            <span>Members</span>
+            <span>Creation Date</span>
+            <span>First Album</span>
+          </li>
+          {{ range .Artists }}
+          <li>
+            <span>{{ .Name }}</span>
+            <span>{{ range .Members }}{{ . }}, {{ end }}</span>
+            <span>{{ .CreationDate }}</span>
+            <span>{{ .FirstAlbum }}</span>
+          </li>
+          {{ end }}
+        </ul>
+      </div>
+    </main>
+
+    <footer>
+      <!-- Add your footer content here -->
+    </footer>
+  </body>
+</html>

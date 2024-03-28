@@ -20,7 +20,7 @@ func renderTemplate(w http.ResponseWriter, tmpl string, data interface{}) {
 	}
 }
 
-func onlySendData(w http.ResponseWriter, data DataToWeb) {
+func onlySendData(w http.ResponseWriter, data interface{}) {
 	// Convertir les données en JSON
 	jsonData, err := json.Marshal(data)
 	if err != nil {
@@ -30,10 +30,6 @@ func onlySendData(w http.ResponseWriter, data DataToWeb) {
 
 	// Définir le type de contenu de la réponse comme JSON
 	w.Header().Set("Content-Type", "application/json")
-
-	// Envoyer les données JSON en réponse
-	_, err = w.Write(jsonData)
-	if err != nil {
-		handleError(w, err)
-	}
+	
+	w.Write(jsonData)
 }

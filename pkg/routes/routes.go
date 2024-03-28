@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"groupietracker.com/m/pkg/api"
-	"groupietracker.com/m/pkg/user"
+	userGestion "groupietracker.com/m/pkg/user"
 )
 
 var staticDir = os.Getenv("STATIC_DIR")
@@ -45,18 +45,15 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 		{func(s string) error { return Setup404Route() }},
 		{func(s string) error { return SetupErrorRoute() }},
 
-		{func(s string) error { return SetAPIRoutes(apiUrl) }},
+		{func(s string) error { return SetAPIRoutes(myApi) }},
 		{func(s string) error { return SetSearchRoutes(myApi) }},
 		{func(s string) error { return SetArtistsRoutes(myApi) }},
 		{func(s string) error { return SetLoginRoutes(myApi) }},
 		{func(s string) error { return SetRegisterRoutes(myApi) }},
 		{func(s string) error { return SetLogoutRoutes(myApi) }},
 		{func(s string) error { return SetProfileRoutes(myApi) }},
-<<<<<<< HEAD
 		{func(s string) error { return SetupAdminRoutes(myApi) }},
-=======
 		{func(s string) error { return SetGetArtistNamesRoute(myApi) }},
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
 	}
 
 	for _, r := range routes {
@@ -67,7 +64,6 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	}
 }
 
-<<<<<<< HEAD
 func Setup404Route() error {
 	http.HandleFunc("/404", func(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, "web/template/404.html", nil)
@@ -82,18 +78,16 @@ func SetupErrorRoute() error {
 	return nil
 }
 
-=======
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
-func SetAPIRoutes(apiUrl string) error {
-	if apiUrl == "" {
-		return fmt.Errorf("API URL is required")
+func SetAPIRoutes(myapi *api.API) error {
+	if myapi == nil {
+		return fmt.Errorf("API is required")
 	}
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		handleAPIRequest(w, apiUrl)
+		handleAPIRequest(w, myapi, r.URL.Path)
 	})
 
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		handleAPIEndpointRequest(w, r, apiUrl)
+		handleAPIEndpointRequest(w, r, myapi)
 	})
 	return nil
 }
@@ -338,11 +332,11 @@ func SetLoginRoutes(myapi *api.API) error {
 			}
 			username := r.FormValue("username")
 			password := r.FormValue("password")
-			thisuser, errTxt := user.Login(w, username, password)
+			user, errTxt := userGestion.Login(w, username, password)
 			if errTxt != "" {
 				renderTemplate(w, "web/template/login.html", UserStruct{ErrUserNotFound: errTxt})
 			}
-			if thisuser != (user.UserStruct{}) {
+			if user != (userGestion.UserStruct{}) {
 				// Ajouter un cookie indiquant la connexion réussie
 				http.SetCookie(w, &http.Cookie{
 					Name:  "loggedIn",
@@ -351,7 +345,7 @@ func SetLoginRoutes(myapi *api.API) error {
 				})
 				http.SetCookie(w, &http.Cookie{
 					Name:  "username",
-					Value: thisuser.Username,
+					Value: user.Username,
 					Path:  "/",
 				})
 				http.Redirect(w, r, "/artists", http.StatusFound)
@@ -382,12 +376,12 @@ func SetRegisterRoutes(myapi *api.API) error {
 			username := r.FormValue("username")
 			password := r.FormValue("password")
 			mail := r.FormValue("email")
-			thisuser, errTxt := user.Register(username, password, mail)
+			thisuser, errTxt := userGestion.Register(username, password, mail)
 			if errTxt != "" {
 				renderTemplate(w, "web/template/register.html", UserStruct{ErrUserNotFound: errTxt})
 				return
 			}
-			if thisuser != (user.UserStruct{}) {
+			if thisuser != (userGestion.UserStruct{}) {
 				http.Redirect(w, r, "/login", http.StatusFound)
 				return
 			}
@@ -442,7 +436,7 @@ func SetProfileRoutes(myapi *api.API) error {
 			username := cookie.Value
 
 			// Récupérer les informations de l'utilisateur à partir de l'API
-			user, err := user.GetUser(username)
+			user, err := userGestion.GetUser(username)
 			if err != nil {
 				handleError(w, err)
 				return
@@ -455,7 +449,6 @@ func SetProfileRoutes(myapi *api.API) error {
 		}
 	})
 	return nil
-<<<<<<< HEAD
 }	
 
 func SetupAdminRoutes(myapi *api.API) error {
@@ -480,7 +473,7 @@ func SetupAdminRoutes(myapi *api.API) error {
 			username := cookie.Value
 
 			// Récupérer les informations de l'utilisateur à partir de l'API
-			user, err := user.GetUser(username)
+			user, err := userGestion.GetUser(username)
 			if err != nil {
 				handleError(w, err)
 				return
@@ -491,11 +484,35 @@ func SetupAdminRoutes(myapi *api.API) error {
 				// Rediriger l'utilisateur vers la page 404
 				http.Redirect(w, r, "/404", http.StatusFound)
 				return
+			}	
+
+			// Récuperer les informations de tous les utilisateurs
+			users, err := userGestion.GetAllUsers()
+			if err != nil {
+				handleError(w, err)
+				return
 			}
 
+			artists, err := myapi.GetAllBands()
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			var dataAdmin struct {
+				Users []userGestion.UserStruct
+				Artists []api.Band
+			}
+			dataAdmin.Users = users
+			dataAdmin.Artists = artists
+
 			// Afficher la page d'administration
-			renderTemplate(w, "web/template/admin.html", nil)
-=======
+			renderTemplate(w, "web/template/admin.html", dataAdmin)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	return nil
 }
 
 func SetGetArtistNamesRoute(myApi *api.API) error {
@@ -524,14 +541,9 @@ func SetGetArtistNamesRoute(myApi *api.API) error {
 			// Renvoyer la réponse JSON
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(jsonResponse)
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6
 		} else {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
 	return nil
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> da4aa1a07ac1b95963321add3d4d5e275be0a0f6

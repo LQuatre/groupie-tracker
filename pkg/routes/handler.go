@@ -2,10 +2,12 @@ package routes
 
 import (
 	"fmt"
-	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"text/template"
+
+	"groupietracker.com/m/pkg/api"
 )
 
 // Fonction pour gérer l'index et les requêtes vers /index.html
@@ -31,78 +33,101 @@ func handleIndex(indexPath string) http.HandlerFunc {
 	}
 }
 
-func handleAPIRequest(w http.ResponseWriter, apiUrl string) {
+func handleAPIRequest(w http.ResponseWriter, myAPI *api.API, Path string, id ...string) {
 	w.Header().Set("Content-Type", "application/json")
-	resp, err := http.Get(apiUrl)
-	if err != nil {
-		handleError(w, err)
+	parts := strings.Split(Path, "/")
+
+	endpoint := parts[2]
+	url := myAPI.BaseURL
+
+	endpoints := map[string]string{
+		"artists":   url + "/artists",
+		"locations": url + "/locations",
+		"dates":     url + "/dates",
+		"relation":  url + "/relation",
+	}
+
+	url, ok := endpoints[endpoint]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-	defer resp.Body.Close()
 
-	_, err = io.Copy(w, resp.Body)
-	if err != nil {
-		handleError(w, err)
-		return
+	// recupérer les données de l'API
+	data := struct {
+		Artists   []api.Band
+		Locations []api.IndexLocations
+		Dates     []api.IndexDates
+		Relation  []api.Relation
+	}{
+		Artists:   myAPI.Artists,
+		Locations: myAPI.Locations,
+		Dates:     myAPI.Dates,
+		Relation:  myAPI.Relation,
+	}
+	
+	// Afficher les données de l'API en fonction de l'endpoint
+	if id == nil {
+		switch endpoint {
+		case "artists":
+			onlySendData(w, data.Artists)
+		case "locations":
+			onlySendData(w, data.Locations)
+		case "dates":
+			onlySendData(w, data.Dates)
+		case "relation":
+			onlySendData(w, data.Relation)
+		}
+	} else {
+		switch endpoint {
+		case "artists":
+			for _, band := range data.Artists {
+				id, _ := strconv.Atoi(id[0])
+				if band.ID == id {
+					onlySendData(w, band)
+					return
+				}
+			}
+		case "locations":
+			for _, location := range data.Locations {
+				locationID, _ := strconv.Atoi(id[0])
+				if location.ID == locationID {
+					onlySendData(w, location)
+					return
+				}
+			}
+		case "dates":
+			for _, date := range data.Dates {
+				dateID, _ := strconv.Atoi(id[0])
+				if date.ID == dateID {
+					onlySendData(w, date)
+					return
+				}
+			}
+		case "relation":
+			for _, relation := range data.Relation {
+				relationID, _ := strconv.Atoi(id[0])
+				if relation.ID == relationID {
+					onlySendData(w, relation)
+					return
+				}
+			}
+		}
 	}
 }
 
-func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl string) {
+func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, myAPI *api.API) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 3 {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
-
-	endpoint := parts[2]
-	url := apiUrl
-
 	if len(parts) == 3 {
-		endpoints := map[string]string{
-			"":          url,
-			"artists":   url + "/artists",
-			"locations": url + "/locations",
-			"dates":     url + "/dates",
-			"relation":  url + "/relation",
-		}
-
-		url, ok := endpoints[endpoint]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
-		handleAPIRequest(w, url)
+		handleAPIRequest(w, myAPI, r.URL.Path)
 	} else if len(parts) == 4 {
-		endpoints := map[string]string{
-			"artists":   url + "/artists",
-			"locations": url + "/locations",
-			"dates":     url + "/dates",
-			"relation":  url + "/relation",
-		}
-
-		url, ok := endpoints[endpoint]
-		if !ok {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
-
 		id := parts[3]
+		handleAPIRequest(w, myAPI, r.URL.Path, id)
 
-		resp, err := http.Get(url + "/" + id)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Content-Type", "application/json")
-
-		_, err = io.Copy(w, resp.Body)
-		if err != nil {
-			handleError(w, err)
-			return
-		}
 	}
 }
 

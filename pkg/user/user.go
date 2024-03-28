@@ -1,4 +1,4 @@
-package user
+package userGestion
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
-	"groupietracker.com/m/pkg/passwordManager"
+	passwordManager "groupietracker.com/m/pkg/password"
 )
 
 type UserStruct struct {
@@ -164,4 +164,28 @@ func GetUserByMail(mail string) (UserStruct, error) {
 		return UserStruct{}, fmt.Errorf("failed to execute the SQL statement: %w", err)
 	}
 	return user, nil
+}
+
+func GetAllUsers() ([]UserStruct, error) {
+	stmt, err := myDataBase.Db.Prepare("SELECT username, password, mail, starred, grade FROM user")
+	if err != nil {
+		return nil, fmt.Errorf("failed to prepare the SQL statement: %w", err)
+	}
+
+	rows, err := stmt.Query()
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute the SQL statement: %w", err)
+	}
+
+	var users []UserStruct
+	for rows.Next() {
+		var user UserStruct
+		err = rows.Scan(&user.Username, &user.Password, &user.Mail, &user.Starred, &user.Grade)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan the row: %w", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
 }

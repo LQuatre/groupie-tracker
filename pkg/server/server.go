@@ -3,7 +3,7 @@ package server
 import (
 	"groupietracker.com/m/pkg/api"
 	"groupietracker.com/m/pkg/routes"
-	"groupietracker.com/m/pkg/user"
+	userGestion "groupietracker.com/m/pkg/user"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -15,7 +15,7 @@ func StartServer() {
 	myAPI := api.NewAPI(localApiUrl)
 	myAPI.ShowAPI()
 
-	user.SetMySQL()
+	userGestion.SetMySQL()
 
 	routes.Setup("web/template/index.html", apiUrl, myAPI)
 }
