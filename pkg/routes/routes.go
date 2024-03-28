@@ -64,8 +64,22 @@ func setupRoutes(apiUrl string, myApi *api.API) {
 	}
 }
 
+func Setup404Route() error {
+	http.HandleFunc("/404", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, "web/template/404.html", nil)
+	})
+	return nil
+}
+
+func SetupErrorRoute() error {
+	http.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		renderTemplate(w, "web/template/error.html", nil)
+	})
+	return nil
+}
+
 func SetAPIRoutes(myapi *api.API) error {
-	if myapi == nil {
+	if myapi == nil{
 		return fmt.Errorf("API URL is required")
 	}
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
@@ -435,7 +449,7 @@ func SetProfileRoutes(myapi *api.API) error {
 		}
 	})
 	return nil
-}
+}	
 
 func SetupAdminRoutes(myapi *api.API) error {
 	if myapi == nil {
@@ -470,7 +484,7 @@ func SetupAdminRoutes(myapi *api.API) error {
 				// Rediriger l'utilisateur vers la page 404
 				http.Redirect(w, r, "/404", http.StatusFound)
 				return
-			}
+			}	
 
 			// Récuperer les informations de tous les utilisateurs
 			users, err := userGestion.GetAllUsers()
@@ -486,7 +500,7 @@ func SetupAdminRoutes(myapi *api.API) error {
 			}
 
 			var dataAdmin struct {
-				Users   []userGestion.UserStruct
+				Users []userGestion.UserStruct
 				Artists []api.Band
 			}
 			dataAdmin.Users = users
