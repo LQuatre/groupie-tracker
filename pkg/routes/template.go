@@ -30,6 +30,6 @@ func onlySendData(w http.ResponseWriter, data interface{}) {
 
 	// Définir le type de contenu de la réponse comme JSON
 	w.Header().Set("Content-Type", "application/json")
-	
+
 	w.Write(jsonData)
 }
