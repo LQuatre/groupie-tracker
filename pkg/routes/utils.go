@@ -58,21 +58,3 @@ func GeocodeAddress(placeName string) (float64, float64) {
 
 	return lat, lng
 }
-
-func onlySendDataAPI(w http.ResponseWriter, data interface{}) {
-	// Convertir les données en JSON
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		handleError(w, err)
-		return
-	}
-
-	// Définir le type de contenu de la réponse comme JSON
-	w.Header().Set("Content-Type", "application/json")
-
-	// Envoyer les données JSON en réponse
-	_, err = w.Write(jsonData)
-	if err != nil {
-		handleError(w, err)
-	}
-}

@@ -10,28 +10,28 @@ import (
 )
 
 type IndexLocations struct {
-	ID       int    `json:"id"`
+	ID        int      `json:"id"`
 	Locations []string `json:"locations"`
-	Dates    string `json:"dates"`
+	Dates     string   `json:"dates"`
 }
 
 type IndexDates struct {
-	ID    int    `json:"id"`
-	Dates  []string `json:"dates"`
+	ID    int      `json:"id"`
+	Dates []string `json:"dates"`
 }
 
 type Relation struct {
-	ID             int                    `json:"id"`
-	DatesLocations map[string][]string    `json:"datesLocations"`
+	ID             int                 `json:"id"`
+	DatesLocations map[string][]string `json:"datesLocations"`
 }
 
 type API struct {
-	BaseURL       string
-	baseApi       map[string]string
-	Artists       []Band
-	Locations     []IndexLocations
-	Dates		  []IndexDates
-	Relation      []Relation
+	BaseURL   string
+	baseApi   map[string]string
+	Artists   []Band
+	Locations []IndexLocations
+	Dates     []IndexDates
+	Relation  []Relation
 }
 
 func NewAPI(baseURL string) *API {
@@ -128,14 +128,13 @@ func NewAPI(baseURL string) *API {
 		rels = append(rels, rel)
 	}
 
-
 	return &API{
-		BaseURL: baseURL,
-		baseApi: resp2,
-		Artists: bands,
+		BaseURL:   baseURL,
+		baseApi:   resp2,
+		Artists:   bands,
 		Locations: locs,
-		Dates: dts,
-		Relation: rels,
+		Dates:     dts,
+		Relation:  rels,
 	}
 }
 
@@ -160,7 +159,7 @@ type Band struct {
 	ConcertDates         string     `json:"concertDates"`
 	Relations            string     `json:"relations"`
 	LocationsCoordinates []Location `json:"locationsCoordinates"`
-	artistID			 int
+	artistID             int
 }
 
 type Filter struct {
@@ -171,8 +170,6 @@ type Filter struct {
 	FirstAlbum      string `json:"firstAlbum"`
 	ConcertDate     string `json:"concertDate"`
 }
-
-var checkAPIBands = false
 
 func (a *API) GetAllBands() ([]Band, error) {
 	return a.Artists, nil

@@ -10,9 +10,8 @@ import (
 
 func StartServer() {
 	apiUrl := "https://groupietrackers.herokuapp.com/api"
-	localApiUrl := apiUrl
 
-	myAPI := api.NewAPI(localApiUrl)
+	myAPI := api.NewAPI(apiUrl)
 	myAPI.ShowAPI()
 
 	userGestion.SetMySQL()
