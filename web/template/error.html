@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Page</title>
+    <link rel="stylesheet" type="text/css" href="/static/assets/css/error.css" />
+</head>
+<body>
+    <h1>Error: You have encountered an error</h1>
+    <p>Sorry, something went wrong.</p>
+    <p>Please try again later.</p>
+    {{ if .Err }}
+    <p>Go : {{ .Err }}</p>
+    {{ end }}
+    <a href="/">Go Back to Home</a>
+</body>
+</html></html>

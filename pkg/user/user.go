@@ -9,10 +9,6 @@ import (
 	"groupietracker.com/m/pkg/passwordManager"
 )
 
-const saltSize = 16
-
-var salt = passwordManager.GenerateRandomSalt(16)
-
 type UserStruct struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -90,7 +86,18 @@ func Register(username, password, mail string) (UserStruct, string) {
 		return UserStruct{}, "The email address is not valid."
 	}
 
-	var hashedPassword = passwordManager.HashPassword(password, salt)
+	// check if the user already exists
+	_, err := GetUser(username)
+	if err == nil {
+		return UserStruct{}, "This username is already used."
+	}
+	// check if the email already exists
+	_, err = GetUserByMail(mail)
+	if err == nil {
+		return UserStruct{}, "This email is already used."
+	}
+
+	hashedPassword, err := passwordManager.HashPassword(password)
 
 	stmt, err := myDataBase.Db.Prepare("INSERT INTO user (username, password, mail) VALUES (?, ?, ?)")
 	if err != nil {
@@ -113,10 +120,10 @@ func Login(w http.ResponseWriter, username, password string) (UserStruct, string
 	}
 	user, err := GetUser(username)
 	if err != nil {
-		return UserStruct{}, "The user does not exist or the password is incorrect."
+		return UserStruct{}, "The user already exists."
 	}
 
-	var PasswordsMatch = passwordManager.DoPasswordsMatch(user.Password, password, salt)
+	var PasswordsMatch = passwordManager.DoPasswordsMatch(user.Password, password)
 
 	if !PasswordsMatch {
 		return UserStruct{}, "The user does not exist or the password is incorrect."
@@ -139,6 +146,20 @@ func GetUser(username string) (UserStruct, error) {
 
 	var user UserStruct
 	err = stmt.QueryRow(username).Scan(&user.Username, &user.Password, &user.Mail, &user.Starred, &user.Grade)
+	if err != nil {
+		return UserStruct{}, fmt.Errorf("failed to execute the SQL statement: %w", err)
+	}
+	return user, nil
+}
+
+func GetUserByMail(mail string) (UserStruct, error) {
+	stmt, err := myDataBase.Db.Prepare("SELECT username, password, mail, starred, grade FROM user WHERE mail = ?")
+	if err != nil {
+		return UserStruct{}, fmt.Errorf("failed to prepare the SQL statement: %w", err)
+	}
+
+	var user UserStruct
+	err = stmt.QueryRow(mail).Scan(&user.Username, &user.Password, &user.Mail, &user.Starred, &user.Grade)
 	if err != nil {
 		return UserStruct{}, fmt.Errorf("failed to execute the SQL statement: %w", err)
 	}

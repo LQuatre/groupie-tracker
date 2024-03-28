@@ -24,16 +24,8 @@ func handleIndex(indexPath string) http.HandlerFunc {
 				return
 			}
 		} else {
-			println(r.URL.Path)
-			tmpl, err := template.ParseFiles("web/template/404.html")
-			if err != nil {
-				handleError(w, err)
-			}
-
-			err = tmpl.Execute(w, nil)
-			if err != nil {
-				handleError(w, err)
-			}
+			// rediriger vers la page 404 "/404"
+			http.Redirect(w, r, "/404", http.StatusFound)
 			return
 		}
 	}
@@ -116,5 +108,22 @@ func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, apiUrl str
 
 func handleError(w http.ResponseWriter, err error) {
 	fmt.Printf("Error: %v\n", err)
-	http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	
+	tmpl, tmplErr := template.ParseFiles("web/template/error.html")
+	if tmplErr != nil {
+		http.Error(w, "Internal Server Error, You should not see this message", http.StatusInternalServerError)
+		return
+	}
+
+	data := struct {
+		Err string
+	}{
+		Err: err.Error(),
+	}
+
+	err = tmpl.Execute(w, data)
+	if err != nil {
+		http.Error(w, "Internal Server Error, You should not see this message", http.StatusInternalServerError)
+		return
+	}
 }
