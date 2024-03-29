@@ -48,9 +48,12 @@
       <p>Members: {{ range .Members }}{{ . }}, {{ end }}</p>
       <p>Creation Date: {{ .CreationDate }}</p>
       <p>First Album: {{ .FirstAlbum }}</p>
+      {{ if .RelationExists }}
       <div id="map" data-locations="{{ .LocationsCoordinates }}"></div>
+      {{ end }}
     </div>
 
+    {{ if .RelationExists }}
     <div class="data-container" datasearch="{{ .Name }}"></div>
 
     <script src="/static/assets/js/artist.js"></script>
@@ -70,5 +73,6 @@
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"
     ></iframe>
+    {{ end }}
   </body>
 </html>

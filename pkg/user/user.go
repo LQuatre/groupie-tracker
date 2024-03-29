@@ -189,3 +189,12 @@ func GetAllUsers() ([]UserStruct, error) {
 
 	return users, nil
 }
+
+func DeleteUser(username string) error {
+	// Supprimer l'utilisateur de la base de données
+	_, err := myDataBase.Db.Exec("DELETE FROM user WHERE username = ?", username)
+	if err != nil {
+		return fmt.Errorf("erreur lors de la suppression de l'utilisateur: %v", err)
+	}
+	return nil
+}

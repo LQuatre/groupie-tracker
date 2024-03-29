@@ -291,11 +291,15 @@ func SetArtistsRoutes(myapi *api.API) error {
 			}
 			stringListLocations, err := myapi.GetRelation(idInt)
 			if err != nil {
-				handleError(w, err)
+				band.LocationsCoordinates = []api.Location{}
+				band.RelationExists = false
+				renderTemplate(w, "web/template/artist.html", band)
+				// handleError(w, err)
 				return
 			}
 
 			band.LocationsCoordinates = []api.Location{}
+			band.RelationExists = true
 
 			for key, value := range stringListLocations.DatesLocations {
 				lat, lng := GeocodeAddress(key)
@@ -512,6 +516,116 @@ func SetupAdminRoutes(myapi *api.API) error {
 			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		}
 	})
+	http.HandleFunc("/admin/delete-user", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			// Vérifier si l'utilisateur est connecté
+			_, err := r.Cookie("loggedIn")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
+			}
+
+			// Récupérer le nom d'utilisateur à partir du cookie
+			cookie, err := r.Cookie("username")
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			username := cookie.Value
+
+			// Récupérer les informations de l'utilisateur à partir de l'API
+			user, err := userGestion.GetUser(username)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			// Vérifier si l'utilisateur est un administrateur
+			if user.Grade != "admin" {
+				// Rediriger l'utilisateur vers la page 404
+				http.Redirect(w, r, "/404", http.StatusFound)
+				return
+			}
+
+			// Récupérer le nom d'utilisateur à supprimer
+			usernameToDelete := r.FormValue("username")
+
+			// Supprimer l'utilisateur de la base de données
+			err = userGestion.DeleteUser(usernameToDelete)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			// Rediriger l'utilisateur vers la page d'administration
+			http.Redirect(w, r, "/admin", http.StatusFound)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+	http.HandleFunc("/admin/add-artist", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			// Vérifier si l'utilisateur est connecté
+			_, err := r.Cookie("loggedIn")
+			if err != nil {
+				http.Redirect(w, r, "/login", http.StatusFound)
+				return
+			}
+
+			// Récupérer le nom d'utilisateur à partir du cookie
+			cookie, err := r.Cookie("username")
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			username := cookie.Value
+
+			// Récupérer les informations de l'utilisateur à partir de l'API
+			user, err := userGestion.GetUser(username)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			// Vérifier si l'utilisateur est un administrateur
+			if user.Grade != "admin" {
+				// Rediriger l'utilisateur vers la page 404
+				http.Redirect(w, r, "/404", http.StatusFound)
+				return
+			}
+
+			// Récupérer les informations de l'artiste à partir du formulaire
+			name := r.FormValue("name")
+			members := r.FormValue("members")
+			creationDateStr := r.FormValue("creation-date")
+			creationDate, err := strconv.Atoi(creationDateStr)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+			firstAlbum := r.FormValue("first-album")
+
+			band := api.Band{
+				Name:         name,
+				Members:      []string{members},
+				CreationDate: creationDate,
+				FirstAlbum:   firstAlbum,
+			}
+
+			// Ajouter l'artiste à la base de données
+			err = myapi.AddBand(band)
+			if err != nil {
+				handleError(w, err)
+				return
+			}
+
+			// Rediriger l'utilisateur vers la page d'administration
+			http.Redirect(w, r, "/admin", http.StatusFound)
+		} else {
+			http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		}
+	})
+
 	return nil
 }
 

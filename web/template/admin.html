@@ -26,6 +26,11 @@
             <span>{{ .Username }}</span>
             <span>{{ .Mail }}</span>
             <span>{{ .Grade }}</span>
+            <!-- delete user -->
+            <form action="/admin/delete-user" method="post">
+              <input type="hidden" name="username" value="{{ .Username }}" />
+              <button type="submit">Delete User</button>
+            </form>
           </li>
           {{ end }}
         </ul>
@@ -48,6 +53,19 @@
           </li>
           {{ end }}
         </ul>
+
+        <!-- add a artists -->
+        <form action="/admin/add-artist" method="post">
+            <h2>Add Artist</h2>
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" value="PLK" required />
+            <label for="members">Members</label>
+            <input type="text" id="members" name="members" value="Mathieu Pruski" required />
+            <label for="creation-date">Creation Date</label>
+            <input type="text" id="creation-date" name="creation-date" value="2015" required />
+            <label for="first-album">First Album</label>
+            <input type="date" id="first-album" name="first-album" value="2017-10-01" required />
+            <button type="submit">Add Artist</button>
       </div>
     </main>
 

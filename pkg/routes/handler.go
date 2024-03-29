@@ -3,6 +3,7 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -35,13 +36,9 @@ func handleIndex(indexPath string) http.HandlerFunc {
 func handleAPIRequest(w http.ResponseWriter, myAPI *api.API, Path string, id ...string) {
 	w.Header().Set("Content-Type", "application/json")
 	parts := strings.Split(Path, "/")
-	if len(parts) < 3 {
-		if len(parts) == 2 && parts[1] == "api" {
-			onlySendData(w, myAPI.BaseApi)
-		} else {
-			w.Header().Set("Content-Type", "text/html")
-			handleError(w, fmt.Errorf("Invalid endpoint"))
-		}
+
+	if len(parts) < 2 || parts[1] != "api" {
+		handleError(w, fmt.Errorf("Invalid API path: %v", Path))
 		return
 	}
 
@@ -50,28 +47,72 @@ func handleAPIRequest(w http.ResponseWriter, myAPI *api.API, Path string, id ...
 		endpoint = parts[2]
 	}
 
-	var endpoints map[string]func()
-
-	// if endpoint == nil {
-	// 	onlySendData(w, myAPI.BaseApi)
-	// } else {
-	endpoints = map[string]func(){
-		"":          func() { onlySendData(w, myAPI.BaseApi) },
-		"artists":   func() { onlySendData(w, myAPI.Artists) },
-		"locations": func() { onlySendData(w, myAPI.Locations) },
-		"dates":     func() { onlySendData(w, myAPI.Dates) },
-		"relation":  func() { onlySendData(w, myAPI.Relation) },
+	switch endpoint {
+	case "":
+		onlySendData(w, myAPI.BaseApi)
+	case "artists", "locations", "dates", "relation":
+		if len(id) == 0 {
+			sendDataByEndpoint(w, myAPI, endpoint)
+		} else {
+			sendDataByID(w, myAPI, endpoint, id[0])
+		}
+	default:
+		handleError(w, fmt.Errorf("Invalid API endpoint: %v", endpoint))
 	}
-	// }
+}
 
-	handleEndpoint, ok := endpoints[endpoint]
-	if !ok {
-		w.Header().Set("Content-Type", "text/html")
-		handleError(w, fmt.Errorf("Invalid endpoint"))
+func sendDataByEndpoint(w http.ResponseWriter, myAPI *api.API, endpoint string) {
+	switch endpoint {
+	case "artists":
+		onlySendData(w, myAPI.Artists)
+	case "locations":
+		onlySendData(w, myAPI.Locations)
+	case "dates":
+		onlySendData(w, myAPI.Dates)
+	case "relation":
+		onlySendData(w, myAPI.Relation)
+	}
+}
+
+func sendDataByID(w http.ResponseWriter, myAPI *api.API, endpoint, id string) {
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		handleError(w, fmt.Errorf("Invalid ID: %v", id))
 		return
 	}
 
-	handleEndpoint()
+	switch endpoint {
+	case "artists":
+		for _, band := range myAPI.Artists {
+			if band.ID == idInt {
+				onlySendData(w, band)
+				return
+			}
+		}
+	case "locations":
+		for _, location := range myAPI.Locations {
+			if location.ID == idInt {
+				onlySendData(w, location)
+				return
+			}
+		}
+	case "dates":
+		for _, date := range myAPI.Dates {
+			if date.ID == idInt {
+				onlySendData(w, date)
+				return
+			}
+		}
+	case "relation":
+		for _, relation := range myAPI.Relation {
+			if relation.ID == idInt {
+				onlySendData(w, relation)
+				return
+			}
+		}
+	}
+
+	handleError(w, fmt.Errorf("ID not found: %v", id))
 }
 
 func handleAPIEndpointRequest(w http.ResponseWriter, r *http.Request, myAPI *api.API) {

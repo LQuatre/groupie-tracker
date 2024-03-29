@@ -33,8 +33,9 @@ This is a simple application that allows users to track their groupie activities
 
 - Clone the repository
 - Install the required packages using :
-  - `go get github.com/go-sql-driver/mysql@v1.7.1`
-  - `go get golang.org/x/crypto@v0.21.0`
+  - `go get github.com/go-sql-driver/mysql`
+  - `go get golang.org/x/crypto`
+  - `go get github.com/PuerkitoBio/goquery`
 - Run the application using `go run .\cmd\main.go`
 
 ## Author

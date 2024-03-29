@@ -2,8 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -71,6 +74,28 @@ func NewAPI(baseURL string) *API {
 		fmt.Println("Failed to decode artists:", err)
 		return nil
 	}
+
+	data, err := ioutil.ReadFile("data.json")
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("data.json does not exist, ignoring...")
+		} else {
+			fmt.Println("Failed to read data.json:", err)
+			return nil
+		}
+	}
+
+	var bands2 []Band
+
+	if len(data) > 0 {
+		err = json.Unmarshal(data, &bands2)
+		if err != nil {
+			fmt.Println("Failed to decode data.json:", err)
+			return nil
+		}
+	}
+
+	bands = append(bands, bands2...)
 
 	var locs []IndexLocations
 	var dts []IndexDates
@@ -161,6 +186,7 @@ type Band struct {
 	ConcertDates         string     `json:"concertDates"`
 	Relations            string     `json:"relations"`
 	LocationsCoordinates []Location `json:"locationsCoordinates"`
+	RelationExists       bool       `json:"relationExists"`
 }
 
 type Filter struct {
@@ -276,4 +302,98 @@ func (a *API) GetRelation(relationshipID int) (*Relation, error) {
 		return nil, fmt.Errorf("relation non trouvée")
 	}
 	return relationship, nil
+}
+
+func (a *API) AddBand(band Band) error {
+	band.ID = len(a.Artists) + 1
+
+	imageURL, err := GetUrlOfTheFirstSquareImage(band.Name)
+
+	if err != nil {
+		fmt.Println("Error:", err)
+		return err
+	}
+
+	// Affecter l'URL à la propriété Image du groupe
+	band.Image = imageURL
+
+	// Ajout du groupe à la liste d'artistes de l'API
+	a.Artists = append(a.Artists, band)
+
+	var bands []Band
+	data, err := ioutil.ReadFile("data.json")
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Println("data.json does not exist, ignoring...")
+		} else {
+			fmt.Println("Failed to read data.json:", err)
+			return err
+		}
+	}
+
+	if len(data) > 0 {
+		err = json.Unmarshal(data, &bands)
+		if err != nil {
+			fmt.Println("Failed to decode data.json:", err)
+			return err
+		}
+	}
+
+	bands = append(bands, band)
+
+	// ajouter dans un fichier json
+	jsonFile, err := os.OpenFile("data.json", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0755)
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer jsonFile.Close()
+
+	jsonData, err := json.Marshal(bands)
+	if err != nil {
+		fmt.Println(err)
+	}
+	jsonFile.Write(jsonData)
+
+	return nil
+}
+
+type BingImageResponse struct {
+	Value []struct {
+		ContentURL string `json:"contentUrl"`
+	} `json:"value"`
+}
+
+func GetUrlOfTheFirstSquareImage(search string) (string, error) {
+	// Requête à l'API Bing Image Search
+	bingURL := fmt.Sprintf("https://api.bing.microsoft.com/v7.0/images/search?q=%s&count=1&aspect=square", search)
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", bingURL, nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Ocp-Apim-Subscription-Key", "e7cf8887a3db45448c45698acc40936c")
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	// Traitement de la réponse JSON
+	var bingResponse BingImageResponse
+	if err := json.NewDecoder(resp.Body).Decode(&bingResponse); err != nil {
+		return "", err
+	}
+
+	// Vérification s'il y a une réponse valide
+	if len(bingResponse.Value) == 0 {
+		return "", fmt.Errorf("aucune image trouvée")
+	}
+
+	// Récupération de l'URL de l'image
+	imageURL := bingResponse.Value[0].ContentURL
+	if imageURL == "" {
+		return "", fmt.Errorf("aucune URL d'image trouvée")
+	}
+
+	return imageURL, nil
 }
