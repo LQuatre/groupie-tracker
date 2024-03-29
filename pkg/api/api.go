@@ -54,9 +54,9 @@ func NewAPI(baseURL string) *API {
 		return nil
 	}
 
-	for key, value := range resp2 {
-		fmt.Printf("%s: %s\n", key, value)
-	}
+	// for key, value := range resp2 {
+	// 	fmt.Printf("%s: %s\n", key, value)
+	// }
 
 	artists, err := http.Get(resp2["artists"])
 	if err != nil {
@@ -127,6 +127,8 @@ func NewAPI(baseURL string) *API {
 		}
 		rels = append(rels, rel)
 	}
+
+	fmt.Println("API initialisée avec succès")
 
 	return &API{
 		BaseURL:   baseURL,

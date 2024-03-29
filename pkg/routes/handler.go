@@ -36,8 +36,12 @@ func handleAPIRequest(w http.ResponseWriter, myAPI *api.API, Path string, id ...
 	w.Header().Set("Content-Type", "application/json")
 	parts := strings.Split(Path, "/")
 	if len(parts) < 3 {
-		w.Header().Set("Content-Type", "text/html")
-		handleError(w, fmt.Errorf("Invalid endpoint"))
+		if len(parts) == 2 && parts[1] == "api" {
+			onlySendData(w, myAPI.BaseApi)
+		} else {
+			w.Header().Set("Content-Type", "text/html")
+			handleError(w, fmt.Errorf("Invalid endpoint"))
+		}
 		return
 	}
 
@@ -46,13 +50,19 @@ func handleAPIRequest(w http.ResponseWriter, myAPI *api.API, Path string, id ...
 		endpoint = parts[2]
 	}
 
-	endpoints := map[string]func(){
+	var endpoints map[string]func()
+
+	// if endpoint == nil {
+	// 	onlySendData(w, myAPI.BaseApi)
+	// } else {
+	endpoints = map[string]func(){
 		"":          func() { onlySendData(w, myAPI.BaseApi) },
 		"artists":   func() { onlySendData(w, myAPI.Artists) },
 		"locations": func() { onlySendData(w, myAPI.Locations) },
 		"dates":     func() { onlySendData(w, myAPI.Dates) },
 		"relation":  func() { onlySendData(w, myAPI.Relation) },
 	}
+	// }
 
 	handleEndpoint, ok := endpoints[endpoint]
 	if !ok {
