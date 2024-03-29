@@ -17,7 +17,11 @@
       An error has occurred
     </h1>
     <p class="MainDescription">
-      Server is currently under high load - please hit 'reload' on your browser in a minute to try again
+      {{ if .Err }}
+        {{ .Err }}
+      {{ else }}
+        An error occurred while processing your request. Please try again later.
+      {{ end }}
     </p>
   </div>
 </body>

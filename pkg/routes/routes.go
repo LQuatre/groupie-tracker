@@ -83,11 +83,11 @@ func SetAPIRoutes(myapi *api.API) error {
 		return fmt.Errorf("API URL is required")
 	}
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		//	handleAPIRequest(w, myApi, r.URL.Path)
+		handleAPIRequest(w, myapi, r.URL.Path)
 	})
 
 	http.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
-		//	handleAPIEndpointRequest(w, r, myApi)
+		handleAPIEndpointRequest(w, r, myapi)
 	})
 	return nil
 }

@@ -27,7 +27,7 @@ type Relation struct {
 
 type API struct {
 	BaseURL   string
-	baseApi   map[string]string
+	BaseApi   map[string]string
 	Artists   []Band
 	Locations []IndexLocations
 	Dates     []IndexDates
@@ -130,7 +130,7 @@ func NewAPI(baseURL string) *API {
 
 	return &API{
 		BaseURL:   baseURL,
-		baseApi:   resp2,
+		BaseApi:   resp2,
 		Artists:   bands,
 		Locations: locs,
 		Dates:     dts,
@@ -159,7 +159,6 @@ type Band struct {
 	ConcertDates         string     `json:"concertDates"`
 	Relations            string     `json:"relations"`
 	LocationsCoordinates []Location `json:"locationsCoordinates"`
-	artistID             int
 }
 
 type Filter struct {
