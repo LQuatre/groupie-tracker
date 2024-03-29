@@ -7,7 +7,7 @@ import (
 )
 
 func GeocodeAddress(placeName string) (float64, float64) {
-	apiKey := "AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o"
+	apiKey := "AIzaSyDKgbLCKstOrqzxFuKjD0-GH4aXAN8CjXM"
 
 	// Construire l'URL de l'API de géocodage de Google
 	url := fmt.Sprintf("https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s", placeName, apiKey)

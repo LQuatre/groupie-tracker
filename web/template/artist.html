@@ -11,34 +11,8 @@
     />
     <script
       async
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAX7_r2A6VAL2v8gKKnZmXmD1Z2bEdov2o&callback=console.debug&libraries=maps,marker&v=beta"
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDKgbLCKstOrqzxFuKjD0-GH4aXAN8CjXM&callback=console.debug&libraries=maps,marker&v=beta"
     ></script>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        background-image: url("default-background.jpg"); /* Image de fond par défaut */
-        background-size: cover;
-        font-family: Arial, sans-serif;
-      }
-      .search-container {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background-color: rgba(255, 255, 255, 0.8);
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-      }
-      .search-input {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border: none;
-        border-radius: 5px;
-      }
-    </style>
   </head>
   <body>
     <h1>Artist Profile</h1>
@@ -49,21 +23,21 @@
       <p>Creation Date: {{ .CreationDate }}</p>
       <p>First Album: {{ .FirstAlbum }}</p>
       {{ if .RelationExists }}
-      <!-- <div id="map" data-locations="{{ .LocationsCoordinates }}"></div> -->
+      <div id="map" data-locations="{{ .LocationsCoordinates }}"></div>
       {{ end }}
     </div>
 
     {{ if .RelationExists }}
     <div class="data-container" datasearch="{{ .Name }}"></div>
 
-    <!-- <script src="/static/assets/js/artist.js"></script>
+    <script src="/static/assets/js/artist.js"></script>
     <gmp-map
       center="43.60826110839844,1.3836721181869507"
       zoom="14"
       map-id="DEMO_MAP_ID"
     >
       <gmp-advanced-marker title="My location"></gmp-advanced-marker>
-    </gmp-map> -->
+    </gmp-map>
     <script src="/static/assets/js/apispot.js"></script>
     <iframe
       id="spotify-iframe"
